@@ -7,37 +7,85 @@ __pycache__/
 dist/
 build/
 *.egg
+.eggs/
 
 # Virtual environments
 venv/
 .venv/
 env/
+ENV/
 
-# Environment variables
+# Environment variables & secrets
 .env
+.env.*
 *.env.local
+*.key
+kaggle.json
 
-# IDE
+# IDEs and editors
 .vscode/
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
 .idea/
-*.swp
-*.swo
+.project
+.classpath
+.c9/
+*.launch
+.settings/
+*.sublime-workspace
 
-# OS
+# OS / System Files
 .DS_Store
 Thumbs.db
 
 # Docker
 docker-compose.override.yml
 
-# ONNX models (large files)
+# ONNX models (distilled model is force-added, ignore other large files)
 *.onnx
 
-# Logs
-*.log
-logs/
+# ML Datasets & artifacts
+datasets/
+ml/datasets/
+processed/
+artifacts/
+*.csv
+*.csv.gz
+*.parquet
+*.feather
+*.joblib
+*.pkl
+*.pickle
+*.pt
+*.pth
+*.h5
+*.ckpt
+mlruns/
+mlflow.db
+.ipynb_checkpoints/
+*.ipynb_checkpoints/
 
-# Test
-.pytest_cache/
-htmlcov/
-.coverage
+# Node / Frontend
+node_modules/
+dist/
+tmp/
+out-tsc/
+*.tsbuildinfo
+.expo/
+.expo-shared/
+/.sass-cache/
+/connect.lock
+/coverage/
+/libpeerconnection.log
+npm-debug.log
+yarn-error.log
+testem.log
+/typings/
+
+# Misc
+.cursor/rules/nx-rules.mdc
+.github/instructions/nx.instructions.md
+.cache/
+.local/
