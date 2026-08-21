@@ -164,6 +164,9 @@ async def seed_admin():
         print(f"[OK] Admin account already exists: {existing_admin['email']}")
         return
 
+    if len(settings.ADMIN_PASSWORD.encode("utf-8")) > MAX_BCRYPT_PASSWORD_BYTES:
+        raise BadRequestException("Admin password must be at most 72 bytes long")
+
     hashed = hash_password(settings.ADMIN_PASSWORD)
     admin_doc = create_user_document(
         email=settings.ADMIN_EMAIL,
