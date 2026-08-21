@@ -6,9 +6,6 @@
   AI-Powered Real-Time UPI Fraud Prevention & Risk Intelligence Platform
 </h3>
 
-<p align="center">
-  <img src="./docs/assets/banner.png" width="850">
-</p>
 
 <p align="center">
 
