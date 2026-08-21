@@ -3,7 +3,7 @@ Risk request/response schemas for the ML microservice.
 """
 
 from typing import Optional, List, Dict, Any
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 
 class TransactionData(BaseModel):
