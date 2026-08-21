@@ -23,7 +23,7 @@ class Settings(BaseSettings):
 
     # JWT Configuration
     JWT_SECRET: str = Field(
-        default="dev-secret-key-change-in-production",
+        ...,
         description="Secret key for JWT token signing"
     )
     JWT_ALGORITHM: str = Field(
