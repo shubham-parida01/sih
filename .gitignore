@@ -1,2 +1,43 @@
-ml/datasets
-*/.env
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+*.egg-info/
+dist/
+build/
+*.egg
+
+# Virtual environments
+venv/
+.venv/
+env/
+
+# Environment variables
+.env
+*.env.local
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Docker
+docker-compose.override.yml
+
+# ONNX models (large files)
+*.onnx
+
+# Logs
+*.log
+logs/
+
+# Test
+.pytest_cache/
+htmlcov/
+.coverage
