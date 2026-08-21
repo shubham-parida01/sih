@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 # SIH 2026 — Explainable Real-Time Fraud Shield for UPI
 ## SOAIDEATHON-S40
 
