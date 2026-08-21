@@ -67,7 +67,7 @@ class Settings(BaseSettings):
 
     # Webhook
     WEBHOOK_SECRET: str = Field(
-        default="webhook-secret-key",
+        ...,
         description="Secret for webhook signature verification"
     )
 
