@@ -1,4 +1,3 @@
-import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ShieldAlert, PhoneCall, Smartphone, UserPlus } from 'lucide-react';
 
