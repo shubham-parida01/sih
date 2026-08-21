@@ -61,6 +61,9 @@ async def register_user(
         raise BadRequestException("Password must be at most 72 bytes long")
 
     # Create user document
+    if len(password.encode("utf-8")) > 72:
+        from app.utils.exceptions import BadRequestException
+        raise BadRequestException("Password is too long (bcrypt supports max 72 bytes)")
     hashed = hash_password(password)
     user_doc = create_user_document(
         email=email,
