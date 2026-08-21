@@ -45,7 +45,7 @@ class Settings(BaseSettings):
         description="Admin email for seeding"
     )
     ADMIN_PASSWORD: str = Field(
-        default="AdminSecurePass123!",
+        ...,
         description="Admin password for seeding"
     )
     ADMIN_FULL_NAME: str = Field(
