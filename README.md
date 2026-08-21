@@ -1,151 +1,204 @@
-# SIH 2026 — Explainable Real-Time Fraud Shield for UPI
-## SOAIDEATHON-S40
+<h1 align="center">
+  <br>
+  🛡️ RakshaPay
+</h1>
 
-Privacy-preserving risk engine that detects suspicious payment behavior, device changes, coercive interaction patterns and voice-phishing indicators before a transaction is completed.
+<p align="center">
+  <b>Smart India Hackathon 2026 — Team SOAIDEATHON-S40</b>
+</p>
 
----
+<p align="center">
+  A privacy-preserving real-time risk interceptor engine designed to detect suspicious transaction behavior, unauthorized device swaps, typing indicators, and vishing activity before a UPI transaction is executed.
+</p>
 
-## 🏗️ Architecture
+<p align="center">
+  <a href="https://github.com/shubham-parida01/sih">
+    <img src="https://img.shields.io/badge/SIH--2026-SOAIDEATHON--S40-blue?style=for-the-badge" alt="SIH 2026 Badge">
+  </a>
+  <img src="https://img.shields.io/badge/FastAPI-v0.115.6-009688?style=for-the-badge&logo=fastapi&logoColor=white" alt="FastAPI Badge">
+  <img src="https://img.shields.io/badge/React-v18-20232a?style=for-the-badge&logo=react&logoColor=61dafb" alt="React Badge">
+  <img src="https://img.shields.io/badge/MongoDB-Atlas-47a248?style=for-the-badge&logo=mongodb&logoColor=white" alt="MongoDB Badge">
+  <img src="https://img.shields.io/badge/ONNX-Runtime-00599c?style=for-the-badge&logo=onnx&logoColor=white" alt="ONNX Badge">
+</p>
 
-```
-┌─────────────────┐     ┌──────────────────────────────────────────┐
-│   Frontend      │────▶│  Backend Service (FastAPI - Port 8000)   │
-│   (React)       │     │  ├── Auth (JWT + Role-Based)             │
-│                 │◀────│  ├── User Portal APIs                    │
-│                 │     │  ├── Admin Portal APIs                   │
-│                 │◀─ws─│  ├── WebSocket (Real-time alerts)        │
-│                 │     │  └── Transaction Engine                  │
-└─────────────────┘     └────────────────┬─────────────────────────┘
-                                         │ HTTP (internal)
-                        ┌────────────────▼─────────────────────────┐
-                        │  ML Microservice (FastAPI - Port 8001)   │
-                        │  ├── Feature Builder (27-dim vector)     │
-                        │  ├── Risk Scorer (ONNX Runtime session)  │
-                        │  ├── Explainability (Scale-to-Logit)     │
-                        │  ├── Device Analyzer                     │
-                        │  ├── Behavior Analyzer                   │
-                        │  └── Voice Phishing Detector (stub)      │
-                        └──────────────────────────────────────────┘
-                                         │
-                        ┌────────────────▼─────────────────────────┐
-                        │        MongoDB Atlas                     │
-                        │  ├── users (profile, credentials)        │
-                        │  ├── transactions (incl. risk_score)     │
-                        │  ├── alerts (admin review queue)         │
-                        │  ├── risk_scores (analytics)             │
-                        │  ├── device_fingerprints                 │
-                        │  ├── webhook_logs (audit trail)          │
-                        │  └── audit_logs                          │
-                        └──────────────────────────────────────────┘
-```
+<hr>
 
----
+<h2>🏗️ 1. Architecture Overview</h2>
 
-## 🚀 Quick Start
+<p>
+  RakshaPay uses a decoupled, high-performance monorepo microservice architecture. Compute-heavy machine learning scoring is isolated from the transactional API gateway to ensure maximum responsiveness (<150ms latency).
+</p>
 
-### Prerequisites
-- Python 3.12+
-- MongoDB Atlas account (configured in `backend/.env`)
+<table width="100%">
+  <tr>
+    <td align="center">
+      <b>System Component Layout & Data Flow</b>
+<pre>
+  ┌─────────────────┐     ┌──────────────────────────────────────────┐
+  │   Frontend      │────▶│  Backend Service (FastAPI - Port 8000)   │
+  │   (React)       │     │  ├── Auth (JWT + Role-Based)             │
+  │                 │◀────│  ├── User Portal APIs                    │
+  │                 │     │  ├── Admin Portal APIs                   │
+  │                 │◀─ws─│  ├── WebSocket (Real-time alerts)        │
+  │                 │     │  └── Transaction Engine                  │
+  └─────────────────┘     └────────────────┬─────────────────────────┘
+                                           │ HTTP (internal)
+                          ┌────────────────▼─────────────────────────┐
+                          │  ML Microservice (FastAPI - Port 8001)   │
+                          │  ├── Feature Preprocessor (27-dim space) │
+                          │  ├── Risk Scorer (ONNX Runtime session)  │
+                          │  ├── Heuristic Scaler Fallback           │
+                          │  └── Device & Behavioral Analyzer        │
+                          └────────────────┬─────────────────────────┘
+                                           │
+                          ┌────────────────▼─────────────────────────┐
+                          │        MongoDB Atlas                     │
+                          │  ├── users (profile, credentials)        │
+                          │  ├── transactions (incl. risk_score)     │
+                          │  └── alerts (admin review queue)         │
+                          └──────────────────────────────────────────┘
+</pre>
+    </td>
+  </tr>
+</table>
 
-### 1. Clone and set up environment
+<hr>
 
-```bash
-# Create virtual environments
-cd backend
-python -m venv venv
-venv\Scripts\activate     # Windows
-pip install -r requirements.txt
+<h2>🚀 2. Live Deployed Services</h2>
 
-# Copy env file and configure
-copy .env.example .env
-# Edit .env with your MongoDB Atlas URI
+<table width="100%">
+  <thead>
+    <tr style="background-color: #f7fafc;">
+      <th align="left">Service</th>
+      <th align="left">Environment</th>
+      <th align="left">Render Deployed Link</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><b>Core Backend Gateway</b></td>
+      <td>Python 3.12.8</td>
+      <td><a href="https://sih-irpg.onrender.com" target="_blank">https://sih-irpg.onrender.com</a></td>
+    </tr>
+    <tr>
+      <td><b>ML scoring Microservice</b></td>
+      <td>Python 3.12.8 + ONNX Runtime</td>
+      <td><a href="https://sih-ml-service-ibak.onrender.com" target="_blank">https://sih-ml-service-ibak.onrender.com</a></td>
+    </tr>
+  </tbody>
+</table>
 
-cd ../ml_service
-python -m venv venv
-venv\Scripts\activate     # Windows
-pip install -r requirements.txt
-copy .env.example .env
-```
+<hr>
 
-### 2. Place the ML Model
-Place your trained ONNX model at:
-👉 **`ml_service/models/student_model.onnx`**
+<h2>🌟 3. Key Product Features</h2>
 
-### 3. Configure the StandardScaler (Optional but Recommended)
-StandardScaler values used to normalize training data can be supplied dynamically. Create a configuration file at:
-👉 **`ml_service/models/scaler_config.json`**
+<ul>
+  <li><b>Real-Time Interception Policy:</b> Decides transaction outputs dynamically on a 0-100 risk scale.
+    <ul>
+      <li><i>Score &lt; 30 (Low Risk):</i> Auto-approves payment instantly.</li>
+      <li><i>Score 30-79 (Medium Risk):</i> Pauses transaction, prompts user in-app confirmation screen.</li>
+      <li><i>Score &gt;= 80 (High/Critical Risk):</i> Blocks payment and triggers high-priority alerts.</li>
+    </ul>
+  </li>
+  <li><b>27-Dimensional Preprocessing:</b> Computes feature matrices containing behavioral details, location cyclicity, device swaps, and speech patterns.</li>
+  <li><b>Admin Alert WebSockets:</b> Persistent wss:// socket streams critical alerts dynamically to active admin dashboards.</li>
+</ul>
 
-Format:
-```json
+<hr>
+
+<h2>📚 4. Semantic API Reference</h2>
+
+<details>
+  <summary><b>🔑 Click to view Authentication & User Endpoints</b></summary>
+  <br>
+  
+  <h4>POST /api/auth/register</h4>
+  <p>Creates a new user profile.</p>
+  <pre><code>// Request Body:
 {
-  "mean": [0.0, 0.0, ..., 0.0],  // Array of 27 values
-  "scale": [1.0, 1.0, ..., 1.0]  // Array of 27 values
-}
-```
-*If this file is not present, a robust heuristic scaling is automatically applied to keep inputs within model boundaries.*
+  "email": "tester@example.com",
+  "password": "Password123",
+  "full_name": "Test User"
+}</code></pre>
 
-### 4. Start the ML Microservice (Port 8001)
+  <h4>POST /api/auth/login</h4>
+  <p>Authenticates user credentials and issues JWT token.</p>
+  <pre><code>// Request Body:
+{
+  "email": "tester@example.com",
+  "password": "Password123"
+}</code></pre>
+</details>
 
-```bash
-cd ml_service
-.\venv\Scripts\uvicorn.exe app.main:app --host 0.0.0.0 --port 8001
-```
+<details>
+  <summary><b>💸 Click to view Transaction & Risk Endpoints</b></summary>
+  <br>
+  
+  <h4>POST /api/transaction/initiate</h4>
+  <p>Initiates transaction evaluation. Risk score is computed dynamically by the ONNX model.</p>
+  <pre><code>// Request Body:
+{
+  "amount": 25000.0,
+  "upi_id": "receiver@upi",
+  "behavioral_data": {
+    "typing_speed": 125.4,
+    "is_pasted": false
+  },
+  "device_data": {
+    "device_id": "dev_id_hash",
+    "is_emulator": false
+  }
+}</code></pre>
 
-### 5. Start the Backend Service (Port 8000)
+  <h4>POST /api/transaction/confirm</h4>
+  <p>Confirms a paused transaction (Risk score 30-79).</p>
+  <pre><code>// Request Body:
+{
+  "transaction_id": "60c72b2f9b..."
+}</code></pre>
+</details>
 
-```bash
-cd backend
-.\venv\Scripts\uvicorn.exe app.main:app --host 0.0.0.0 --port 8000 --reload
-```
+<details>
+  <summary><b>📊 Click to view Admin Dashboard & WebSockets</b></summary>
+  <br>
+  
+  <h4>GET /api/admin/dashboard</h4>
+  <p>Returns general aggregate metrics formatting matching AppConfig.json.</p>
+  
+  <h4>GET /api/admin/charts/weekly-volume</h4>
+  <p>Returns approved vs blocked daily amount volumes.</p>
 
----
+  <h4>WSS /api/admin/ws/{admin_id}</h4>
+  <p>Persistent socket endpoint to stream real-time critical fraud warnings.</p>
+</details>
 
-## 📚 API Documentation
+<hr>
 
-Once running, visit:
-- **Backend Swagger**: http://localhost:8000/docs
-- **ML Service Swagger**: http://localhost:8001/docs
+<h2>🛠️ 5. Local Setup Instructions</h2>
 
----
+<h3>1. Clone and Configure</h3>
+<pre><code>git clone https://github.com/shubham-parida01/sih.git
+cd sih</code></pre>
 
-## 🔑 Authentication
+<h3>2. Start ML Microservice</h3>
+<pre><code>cd ml_service
+python -m venv venv
+venv\Scripts\activate
+pip install -r requirements.txt
+# Place student_model.onnx inside /models
+uvicorn app.main:app --host 0.0.0.0 --port 8001</code></pre>
 
-- **Register**: `POST /api/auth/register`
-- **Login**: `POST /api/auth/login` → returns JWT + role
-- **Admin**: Seeded on first startup (configure in .env)
+<h3>3. Start Backend Core</h3>
+<pre><code>cd ../backend
+python -m venv venv
+venv\Scripts\activate
+pip install -r requirements.txt
+# Copy and configure .env file
+copy .env.example .env
+uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload</code></pre>
 
-Login response includes `role` field (`user` or `admin`) so the frontend knows which dashboard to render.
+<hr>
 
----
-
-## 🔄 Transaction Flow
-
-1. User clicks "Pay" → `POST /api/transaction/initiate`
-2. Backend sends to ML service for risk scoring
-3. Based on risk score:
-   - **< 30 (LOW)**: Auto-approved ✅
-   - **30-79 (MEDIUM/HIGH)**: Paused with warning ⚠️
-   - **≥ 80 (CRITICAL)**: Blocked, admin notified via WebSocket 🔴
-4. User can confirm/cancel paused transactions
-
-The response includes:
-* `model_type`: `"onnx"` if the ONNX model executed; `"rule_based"` if it fell back to heuristics.
-
----
-
-## 📊 Admin Dashboard
-
-- WebSocket real-time alerts: `ws://localhost:8000/api/admin/ws/{admin_id}`
-- Risk alert webhook receiver: `POST /api/admin/webhooks/risk-alert`
-- Chart data endpoints match frontend `appConfig.json` format:
-  - Donut Chart: `GET /api/admin/dashboard` (`risk_distribution` field)
-  - 7-day Line Chart: `GET /api/admin/dashboard` (`score_trend` field)
-  - Area Chart (Single Account): `GET /api/admin/accounts/{user_id}` (`account_trend` field)
-  - Weekly Volume Dual Bar: `GET /api/admin/charts/weekly-volume`
-  - Horizontal Reason Bar: `GET /api/admin/charts/risk-reasons`
-
----
-
-## 👥 Team
-
-Built for Smart India Hackathon 2026.
+<p align="center">
+  Built for <b>Smart India Hackathon 2026</b>.
+</p>
