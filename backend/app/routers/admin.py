@@ -7,8 +7,10 @@ import hmac
 import hashlib
 from datetime import datetime, timezone
 
-from fastapi import APIRouter, Depends, Query, WebSocket, WebSocketDisconnect, Request
+from fastapi import APIRouter, Depends, Query, WebSocket, WebSocketDisconnect, Request, HTTPException, status
 from typing import Optional
+
+from bson import ObjectId
 
 from app.schemas.admin import ReviewAlertRequest
 from app.services.admin_service import (
@@ -26,6 +28,7 @@ from app.middleware.auth_middleware import require_admin
 from app.config import settings
 from app.database import get_database
 from app.models.alert import create_webhook_log_document
+from app.utils.security import decode_token
 
 router = APIRouter(prefix="/api/admin", tags=["Admin Portal"])
 
@@ -177,7 +180,7 @@ async def list_false_positives(
 async def webhook_risk_alert(request: Request):
     """
     Webhook endpoint for receiving risk alerts from the Risk Alert Service.
-    POST /webhooks/risk-alert
+    POST /api/admin/webhooks/risk-alert
     Verifies webhook signature, logs delivery, and pushes to WebSocket.
     """
     body = await request.body()
@@ -191,7 +194,7 @@ async def webhook_risk_alert(request: Request):
     ).hexdigest()
 
     if not hmac.compare_digest(signature, expected_sig):
-        return {"success": False, "message": "Invalid webhook signature"}, 401
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid webhook signature")
 
     payload = await request.json()
     db = get_database()
@@ -221,8 +224,32 @@ async def websocket_endpoint(websocket: WebSocket, admin_id: str):
     WebSocket endpoint for real-time admin notifications.
     Admin frontend connects here to receive push alerts for high-risk transactions.
 
-    Connection URL: ws://localhost:8000/api/admin/ws/{admin_id}
+    Connection URL: ws://localhost:8000/api/admin/ws/{admin_id}?token=<access_token>
     """
+    token = websocket.query_params.get("token")
+    if not token:
+        await websocket.close(code=status.WS_1008_POLICY_VIOLATION, reason="Missing access token")
+        return
+
+    payload = decode_token(token)
+    if (
+        payload is None
+        or payload.get("type") != "access"
+        or payload.get("role") != "admin"
+        or payload.get("sub") != admin_id
+    ):
+        await websocket.close(code=status.WS_1008_POLICY_VIOLATION, reason="Unauthorized admin websocket")
+        return
+
+    db = get_database()
+    try:
+        admin = await db.users.find_one({"_id": ObjectId(admin_id), "role": "admin", "is_active": True})
+    except Exception:
+        admin = None
+    if not admin:
+        await websocket.close(code=status.WS_1008_POLICY_VIOLATION, reason="Admin account not found")
+        return
+
     await ws_manager.connect_admin(websocket, admin_id)
 
     try:

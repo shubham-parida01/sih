@@ -136,6 +136,7 @@ The response includes:
 ## 📊 Admin Dashboard
 
 - WebSocket real-time alerts: `ws://localhost:8000/api/admin/ws/{admin_id}`
+- Risk alert webhook receiver: `POST /api/admin/webhooks/risk-alert`
 - Chart data endpoints match frontend `appConfig.json` format:
   - Donut Chart: `GET /api/admin/dashboard` (`risk_distribution` field)
   - 7-day Line Chart: `GET /api/admin/dashboard` (`score_trend` field)

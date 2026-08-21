@@ -16,7 +16,7 @@ async def connect_to_mongodb():
     """Initialize MongoDB connection and create indexes."""
     global client, db
 
-    print(f"[*] Connecting to MongoDB: {settings.MONGODB_URI[:30]}...")
+    print("[*] Connecting to MongoDB...")
 
     client = AsyncIOMotorClient(
         settings.MONGODB_URI,

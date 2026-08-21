@@ -282,7 +282,7 @@ async def cancel_transaction(user_id: str, txn_id: str) -> dict:
     if not txn:
         raise NotFoundException("Transaction")
 
-    if txn["status"] not in [TransactionStatus.PAUSED.value, TransactionStatus.WARNING_SHOWN.value]:
+    if txn["status"] != TransactionStatus.PAUSED.value:
         raise BadRequestException(
             f"Transaction cannot be cancelled. Current status: {txn['status']}"
         )

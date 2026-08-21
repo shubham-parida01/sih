@@ -199,23 +199,26 @@ async def get_all_accounts(
     skip = (page - 1) * page_size
 
     cursor = db.users.find(query).sort("created_at", -1).skip(skip).limit(page_size)
+    users = await cursor.to_list(length=page_size)
 
-    accounts = []
-    async for user in cursor:
-        user_id = str(user["_id"])
-
-        # Get transaction stats for this user
+    user_ids = [str(user["_id"]) for user in users]
+    stats_by_user = {}
+    if user_ids:
         stats_pipeline = [
-            {"$match": {"user_id": user_id}},
+            {"$match": {"user_id": {"$in": user_ids}}},
             {"$group": {
-                "_id": None,
+                "_id": "$user_id",
                 "total": {"$sum": 1},
                 "avg_risk": {"$avg": {"$ifNull": ["$risk_score", 0]}},
-            }}
+            }},
         ]
-        stats = None
         async for doc in db.transactions.aggregate(stats_pipeline):
-            stats = doc
+            stats_by_user[doc["_id"]] = doc
+
+    accounts = []
+    for user in users:
+        user_id = str(user["_id"])
+        stats = stats_by_user.get(user_id)
 
         avg_risk = stats["avg_risk"] if stats else 0
         risk_level = "low"

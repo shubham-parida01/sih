@@ -20,8 +20,11 @@ from app.utils.exceptions import (
     ConflictException,
     CredentialsException,
     NotFoundException,
+    BadRequestException,
 )
 from app.config import settings
+
+MAX_BCRYPT_PASSWORD_BYTES = 72
 
 
 async def register_user(
@@ -53,6 +56,9 @@ async def register_user(
         existing_upi = await db.users.find_one({"upi_id": upi_id})
         if existing_upi:
             raise ConflictException("This UPI ID is already registered")
+
+    if len(password.encode("utf-8")) > MAX_BCRYPT_PASSWORD_BYTES:
+        raise BadRequestException("Password must be at most 72 bytes long")
 
     # Create user document
     hashed = hash_password(password)
