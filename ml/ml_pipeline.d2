@@ -1,0 +1,139 @@
+direction: right
+
+datasets: {
+  shape: cylinder
+  label: "Raw datasets\nULB / PaySim / IEEE-CIS"
+}
+
+unify: {
+  label: "data_cleaning.py\nunify + backfill synthetic fields"
+}
+
+unified_csv: {
+  shape: cylinder
+  label: "unified_transactions.csv"
+}
+
+feature_eng: {
+  label: "feature_engineering.py\nfreq-encode device_info, one-hot low-card,\nscale (fit on label==0)"
+}
+
+features: {
+  shape: cylinder
+  label: "X_train_normal.parquet\nX_full.parquet\nmeta_full.parquet"
+}
+
+datasets -> unify -> unified_csv -> feature_eng -> features
+
+teachers: {
+  label: "Teachers (SS-4 / SS-5)"
+  direction: right
+
+  isolation_forest: {
+    label: "train_isolation_forest.py\nIsolationForest\ncontamination=0.005"
+  }
+  autoencoder: {
+    label: "train_autoencoder.py\nPyTorch AE 27-64-32-16-32-64-27\ntrained on label==0 only"
+  }
+
+  if_scores: {
+    shape: cylinder
+    label: "if_scores.parquet\nROC-AUC 0.9521"
+  }
+  ae_scores: {
+    shape: cylinder
+    label: "ae_scores.parquet\nROC-AUC 0.8982"
+  }
+
+  isolation_forest -> if_scores
+  autoencoder -> ae_scores
+}
+
+features -> teachers.isolation_forest
+features -> teachers.autoencoder
+
+ensemble: {
+  label: "combine_ensemble.py (SS-6)\nrank/percentile-normalize + combine\nsimple_avg / weighted_avg / max / logreg_meta"
+}
+
+ensemble_scores: {
+  shape: cylinder
+  label: "ensemble_scores.parquet\nbest: logreg_meta ROC-AUC 0.9564"
+}
+
+teachers.if_scores -> ensemble
+teachers.ae_scores -> ensemble
+ensemble -> ensemble_scores
+
+student: {
+  label: "train_student.py (SS-7)\ndistill ensemble_logreg_meta into small MLP\n6-arch capacity sweep, smallest-viable selection"
+}
+
+student_model: {
+  shape: cylinder
+  label: "student_model.pt\nselected: [32,16], 1,537 params, 6KB\ntest ROC-AUC 0.9976 / PR-AUC 0.8776"
+}
+
+ensemble_scores -> student -> student_model
+
+export: {
+  label: "export_student.py (SS-8)\ntorch.onnx.export -> onnx2tf -> TFLite\nverified vs PyTorch each step"
+}
+
+onnx: {
+  shape: cylinder
+  label: "student_model.onnx\n~8KB, diff 6e-07 vs PyTorch"
+}
+tflite: {
+  shape: cylinder
+  label: "student_model.tflite\n~8.6KB, diff 1e-06 vs PyTorch"
+}
+
+student_model -> export
+export -> onnx
+export -> tflite
+
+benchmark: {
+  label: "benchmark_student.py (SS-9)\nsize + latency across formats\nbatch sizes 1 -> 2048"
+}
+onnx -> benchmark
+tflite -> benchmark
+
+serving: {
+  label: "Serving targets"
+  shape: diamond
+  api: "API endpoint\n(onnxruntime)"
+  web: "Website frontend\n(onnxruntime-web)"
+}
+onnx -> serving.api
+onnx -> serving.web
+
+explain: {
+  label: "explain_student.py (SS-10)\nnumerical Integrated Gradients (finite-diff,\nno autograd needed) + occlusion fallback\nruns on the deployed ONNX graph itself"
+}
+onnx -> explain
+explain -> flagged_txn: "per-transaction\nattribution"
+
+flagged_txn: {
+  shape: person
+  label: "Analyst / user\nsees why a txn was flagged"
+}
+
+monitor: {
+  label: "monitor_student.py\nPSI drift (features + score),\nflag-rate + latency over time\nOK / WATCH / ALERT"
+}
+onnx -> monitor
+monitor -> monitoring_log: "batch-by-batch"
+
+monitoring_log: {
+  shape: cylinder
+  label: "monitoring_log.parquet\n+ dashboard plots"
+}
+
+monitor -> alert_ops: "if ALERT" {style.stroke-dash: 3}
+alert_ops: {
+  shape: person
+  label: "Ops / retrain trigger"
+}
+
+style.fill: "#1a1a1a"
