@@ -56,6 +56,8 @@ export const PaymentScreen = ({ onTriggerIntervention, onPaymentSuccess, isDark,
           batteryLevel = `${Math.round(battery.level * 100)}% ${battery.charging ? '(Charging)' : ''}`;
         } catch (e) {
           batteryLevel = "Access Denied";
+          console.log(e.message);
+          
         }
       }
 
@@ -118,25 +120,25 @@ export const PaymentScreen = ({ onTriggerIntervention, onPaymentSuccess, isDark,
   };
 
   return (
-    <div className="min-h-screen bg-[var(--color-pure-white)] dark:bg-[var(--color-abyss)] flex flex-col lg:flex-row overflow-hidden font-sans transition-colors duration-300">
+    <div className="min-h-screen bg-(--color-pure-white) dark:bg-(--color-abyss) flex flex-col lg:flex-row overflow-hidden font-sans transition-colors duration-300">
       
       {/* LEFT COLUMN: The Banking App / Phone Simulator */}
-      <div className="w-full lg:w-1/2 flex items-center justify-center p-4 lg:p-12 relative bg-[var(--color-off-white-canvas)] dark:bg-[var(--color-obsidian)] transition-colors duration-300">
+      <div className="w-full lg:w-1/2 flex items-center justify-center p-4 lg:p-12 relative bg-(--color-off-white-canvas) dark:bg-(--color-obsidian) transition-colors duration-300">
         
         {/* Neon Accent Glow */}
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[400px] h-[400px] bg-[var(--color-electric-lime)] dark:bg-[var(--color-iris-gleam)] rounded-full blur-[150px] opacity-20 pointer-events-none transition-colors duration-300" />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-100 h-100 bg-(--color-electric-lime) dark:bg-(--color-iris-gleam) rounded-full blur-[150px] opacity-20 pointer-events-none transition-colors duration-300" />
 
         <motion.div 
           initial={{ y: 20, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
-          className="relative w-full max-w-[400px] min-h-[700px] bg-[var(--color-pure-white)] dark:bg-[var(--color-graphite-dark)] rounded-[32px] border border-[var(--color-ash)] dark:border-[var(--color-steel)] shadow-2xl overflow-hidden flex flex-col transition-colors duration-300"
+          className="relative w-full max-w-100 min-h-175 bg-(--color-pure-white) dark:bg-(--color-graphite-dark) rounded-4xl border border-(--color-ash) dark:border-(--color-steel) shadow-2xl overflow-hidden flex flex-col transition-colors duration-300"
         >
           {/* Scanning Overlay (Appears when Pay is clicked) */}
           <AnimatePresence>
             {isExtracting && (
               <motion.div 
                 initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-                className="absolute inset-0 z-50 bg-[var(--color-pure-white)]/95 dark:bg-[var(--color-abyss)]/90 backdrop-blur-sm flex flex-col items-center justify-center text-[var(--color-off-black-ink)] dark:text-[var(--color-iris-gleam)]"
+                className="absolute inset-0 z-50 bg-(--color-pure-white)/95 dark:bg-(--color-abyss)/90 backdrop-blur-sm flex flex-col items-center justify-center text-(--color-off-black-ink) dark:text-(--color-iris-gleam)"
               >
                 <motion.div 
                   animate={{ y: [-20, 20, -20] }} 
@@ -150,40 +152,40 @@ export const PaymentScreen = ({ onTriggerIntervention, onPaymentSuccess, isDark,
           </AnimatePresence>
 
           {/* App Header */}
-          <div className="p-6 bg-[var(--color-off-white-canvas)] dark:bg-[#111111] border-b border-[var(--color-ash)] dark:border-[var(--color-steel)] flex items-center justify-between transition-colors duration-300">
+          <div className="p-6 bg-(--color-off-white-canvas) dark:bg-[#111111] border-b border-(--color-ash) dark:border-(--color-steel) flex items-center justify-between transition-colors duration-300">
             <div className="flex items-center space-x-3">
-              <ArrowLeft className="w-5 h-5 text-[var(--color-off-black-ink)] dark:text-[var(--color-cloud)]" />
-              <h1 className="text-xl font-bold tracking-tight text-[var(--color-off-black-ink)] dark:text-white">Send Money</h1>
+              <ArrowLeft className="w-5 h-5 text-(--color-off-black-ink) dark:text-(--color-cloud)" />
+              <h1 className="text-xl font-bold tracking-tight text-(--color-off-black-ink) dark:text-white">Send Money</h1>
             </div>
-            <ShieldCheck className="w-6 h-6 text-[var(--color-electric-lime)] dark:text-[var(--color-iris-gleam)]" />
+            <ShieldCheck className="w-6 h-6 text-(--color-electric-lime) dark:text-(--color-iris-gleam)" />
           </div>
 
           {/* App Body */}
           <div className="flex-1 p-8 flex flex-col justify-center">
             <form onSubmit={handlePayment} className="space-y-8">
               <div className="space-y-2">
-                <label className="block text-xs font-bold text-[var(--color-graphite)] dark:text-[var(--color-ash-dark)] uppercase tracking-wider">
+                <label className="block text-xs font-bold text-(--color-graphite) dark:text-(--color-ash-dark) uppercase tracking-wider">
                   Payee UPI ID
                 </label>
                 <input
                   type="text"
                   value={upiId}
                   onChange={(e) => setUpiId(e.target.value)}
-                  className="w-full py-4 px-4 rounded-xl border border-[var(--color-ash)] dark:border-[var(--color-steel)] text-lg font-semibold text-[var(--color-off-black-ink)] dark:text-white bg-[var(--color-off-white-canvas)] dark:bg-[var(--color-abyss)] focus:outline-none focus:border-[var(--color-electric-lime)] dark:focus:border-[var(--color-iris-gleam)] transition-colors"
+                  className="w-full py-4 px-4 rounded-xl border border-(--color-ash) dark:border-(--color-steel) text-lg font-semibold text-(--color-off-black-ink) dark:text-white bg-(--color-off-white-canvas) dark:bg-(--color-abyss) focus:outline-none focus:border-(--color-electric-lime) dark:focus:border-(--color-iris-gleam) transition-colors"
                 />
               </div>
 
               <div className="space-y-2">
-                <label className="block text-xs font-bold text-[var(--color-graphite)] dark:text-[var(--color-ash-dark)] uppercase tracking-wider text-center">
+                <label className="block text-xs font-bold text-(--color-graphite) dark:text-(--color-ash-dark) uppercase tracking-wider text-center">
                   Amount
                 </label>
                 <div className="flex items-center justify-center py-6">
-                  <span className="text-4xl font-extrabold text-[var(--color-off-black-ink)] dark:text-white mr-2">₹</span>
+                  <span className="text-4xl font-extrabold text-(--color-off-black-ink) dark:text-white mr-2">₹</span>
                   <input
                     type="text"
                     value={amount}
                     onChange={(e) => setAmount(e.target.value)}
-                    className="w-48 text-5xl font-extrabold text-[var(--color-off-black-ink)] dark:text-white bg-transparent focus:outline-none text-left"
+                    className="w-48 text-5xl font-extrabold text-(--color-off-black-ink) dark:text-white bg-transparent focus:outline-none text-left"
                   />
                 </div>
               </div>
@@ -191,7 +193,7 @@ export const PaymentScreen = ({ onTriggerIntervention, onPaymentSuccess, isDark,
               <motion.button
                 whileTap={{ scale: 0.95 }}
                 type="submit"
-                className="w-full py-4 rounded-[var(--radius-full)] bg-[var(--color-electric-lime)] dark:bg-[var(--color-iris-gleam)] text-[var(--color-off-black-ink)] dark:text-white font-bold text-lg shadow-[0_0_20px_rgba(190,255,80,0.3)] dark:shadow-[0_0_20px_rgba(132,125,255,0.3)] flex items-center justify-center space-x-2 transition-all hover:shadow-[0_0_30px_rgba(190,255,80,0.5)] dark:hover:shadow-[0_0_30px_rgba(132,125,255,0.5)] cursor-pointer"
+                className="w-full py-4 rounded-(--radius-full) bg-(--color-electric-lime) dark:bg-(--color-iris-gleam) text-(--color-off-black-ink) dark:text-white font-bold text-lg shadow-[0_0_20px_rgba(190,255,80,0.3)] dark:shadow-[0_0_20px_rgba(132,125,255,0.3)] flex items-center justify-center space-x-2 transition-all hover:shadow-[0_0_30px_rgba(190,255,80,0.5)] dark:hover:shadow-[0_0_30px_rgba(132,125,255,0.5)] cursor-pointer"
               >
                 <span>Pay Securely</span>
                 <Send className="w-5 h-5" />
@@ -202,14 +204,14 @@ export const PaymentScreen = ({ onTriggerIntervention, onPaymentSuccess, isDark,
       </div>
 
       {/* RIGHT COLUMN: Real-Time Feature Terminal */}
-      <div className="w-full lg:w-1/2 bg-[var(--color-pure-white)] dark:bg-[#090a0b] border-l border-[var(--color-ash)] dark:border-gray-800 p-6 lg:p-12 flex flex-col h-full transition-colors duration-300">
+      <div className="w-full lg:w-1/2 bg-(--color-pure-white) dark:bg-[#090a0b] border-l border-(--color-ash) dark:border-gray-800 p-6 lg:p-12 flex flex-col h-full transition-colors duration-300">
         
         <div className="flex items-center justify-between gap-3 mb-8">
           <div className="flex items-center gap-3">
-            <Cpu className="w-8 h-8 text-[var(--color-electric-lime)] dark:text-[var(--color-iris-gleam)]" />
+            <Cpu className="w-8 h-8 text-(--color-electric-lime) dark:text-(--color-iris-gleam)" />
             <div>
-              <h2 className="text-2xl font-bold text-[var(--color-off-black-ink)] dark:text-white tracking-tight">On-Device Extraction</h2>
-              <p className="text-sm text-[var(--color-graphite)] dark:text-gray-400">Real-time local hardware and environmental state.</p>
+              <h2 className="text-2xl font-bold text-(--color-off-black-ink) dark:text-white tracking-tight">On-Device Extraction</h2>
+              <p className="text-sm text-(--color-graphite) dark:text-gray-400">Real-time local hardware and environmental state.</p>
             </div>
           </div>
           <ThemeToggle isDark={isDark} setIsDark={setIsDark} />
@@ -227,8 +229,8 @@ export const PaymentScreen = ({ onTriggerIntervention, onPaymentSuccess, isDark,
               onClick={() => toggleTelemetry(item.id)}
               className={`p-3 rounded-lg border cursor-pointer transition-all flex items-center justify-center gap-2 text-sm font-bold ${
                 telemetry[item.id] 
-                ? 'bg-[var(--color-electric-lime)] dark:bg-[var(--color-iris-gleam)] border-[var(--color-electric-lime)] dark:border-[var(--color-iris-gleam)] text-[var(--color-off-black-ink)] dark:text-white' 
-                : 'bg-[var(--color-off-white-canvas)] dark:bg-[var(--color-graphite-dark)] border-[var(--color-ash)] dark:border-[var(--color-steel)] text-[var(--color-graphite)] dark:text-[var(--color-ash-dark)] hover:border-[var(--color-off-black-ink)] dark:hover:border-gray-600'
+                ? 'bg-(--color-electric-lime) dark:bg-(--color-iris-gleam) border-(--color-electric-lime) dark:border-(--color-iris-gleam) text-(--color-off-black-ink) dark:text-white' 
+                : 'bg-(--color-off-white-canvas) dark:bg-(--color-graphite-dark) border-(--color-ash) dark:border-(--color-steel) text-(--color-graphite) dark:text-(--color-ash-dark) hover:border-(--color-off-black-ink) dark:hover:border-gray-600'
               }`}
             >
               <item.icon className="w-4 h-4" />
@@ -238,11 +240,11 @@ export const PaymentScreen = ({ onTriggerIntervention, onPaymentSuccess, isDark,
         </div>
 
         {/* Syntax Highlighted JSON Terminal */}
-        <div className="flex-1 bg-[var(--color-off-white-canvas)] dark:bg-[#141414] rounded-xl border border-[var(--color-ash)] dark:border-gray-800 overflow-hidden flex flex-col font-mono shadow-2xl transition-colors duration-300">
-          <div className="bg-[var(--color-ash)]/30 dark:bg-[#1a1a1a] px-4 py-3 border-b border-[var(--color-ash)] dark:border-gray-800 flex items-center justify-between">
+        <div className="flex-1 bg-(--color-off-white-canvas) dark:bg-[#141414] rounded-xl border border-(--color-ash) dark:border-gray-800 overflow-hidden flex flex-col font-mono shadow-2xl transition-colors duration-300">
+          <div className="bg-(--color-ash)/30 dark:bg-[#1a1a1a] px-4 py-3 border-b border-(--color-ash) dark:border-gray-800 flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <Terminal className="w-4 h-4 text-[var(--color-graphite)] dark:text-gray-400" />
-              <span className="text-[var(--color-graphite)] dark:text-gray-400 text-xs tracking-wider">feature_vector.json</span>
+              <Terminal className="w-4 h-4 text-(--color-graphite) dark:text-gray-400" />
+              <span className="text-(--color-graphite) dark:text-gray-400 text-xs tracking-wider">feature_vector.json</span>
             </div>
             <div className="flex gap-2">
               <span className="w-3 h-3 rounded-full bg-red-500/80"></span>
@@ -252,7 +254,7 @@ export const PaymentScreen = ({ onTriggerIntervention, onPaymentSuccess, isDark,
           </div>
           
           <div className="p-6 overflow-y-auto text-sm leading-relaxed flex-1">
-            <pre className="text-[var(--color-off-black-ink)] dark:text-gray-300">
+            <pre className="text-(--color-off-black-ink) dark:text-gray-300">
               <span className="text-[#847dff]">{'{'}</span>
               <br/>
               <span className="text-[#00b3dd]">  "timestamp"</span>: <span className="text-[#beff50]">"{liveJSON.timestamp}"</span>,
