@@ -1,17 +1,8 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import {
-  ArrowLeft,
-  Send,
-  Smartphone,
-  PhoneCall,
-  UserPlus,
-  Terminal,
-  ShieldCheck,
-  Cpu,
-  ScanLine,
-} from "lucide-react";
-import ThemeToggle from "./ThemeToggle";
+import { ArrowLeft, Send, ShieldCheck, ScanLine } from "lucide-react";
+
+import { TelemetryTerminal } from "./TelemetryTerminal"; 
 
 export const PaymentScreen = ({
   onTriggerIntervention,
@@ -40,19 +31,17 @@ export const PaymentScreen = ({
     newDevice: false,
     firstTimePayee: false,
   });
-  // handeling number in pay time
-const handleChange = (e) => {
-  // Strip out all non-numeric characters (commas, letters, symbols)
-  const rawValue = e.target.value.replace(/\D/g, "");
 
-  // Store as capped pure number (or 0 if input is cleared)
-  if (rawValue === "") {
-    setAmount(0);
-  } else {
-    const numericValue = Number(rawValue);
-    setAmount(Math.min(numericValue, 100000));
-  }
-};
+  // handling number in pay time
+  const handleChange = (e) => {
+    const rawValue = e.target.value.replace(/\D/g, "");
+    if (rawValue === "") {
+      setAmount(0);
+    } else {
+      const numericValue = Number(rawValue);
+      setAmount(Math.min(numericValue, 100000));
+    }
+  };
 
   // 1. ACTUAL LOCAL FEATURE EXTRACTION LOGIC
   useEffect(() => {
@@ -107,8 +96,6 @@ const handleChange = (e) => {
 
   const handlePayment = (e) => {
     e?.preventDefault();
-
-    // Simulate the extraction delay before scoring
     setIsExtracting(true);
 
     setTimeout(() => {
@@ -124,7 +111,7 @@ const handleChange = (e) => {
           onPaymentSuccess({ amount, upiId });
         }
       }
-    }, 1500); // 1.5 second scanning animation
+    }, 1500); 
   };
 
   const liveJSON = {
@@ -142,18 +129,20 @@ const handleChange = (e) => {
   };
 
   return (
-    <div className="min-h-screen bg-(--color-pure-white) dark:bg-(--color-abyss) flex flex-col lg:flex-row overflow-hidden font-sans transition-colors duration-300">
+    <div className="min-h-screen lg:h-screen overflow-x-hidden lg:overflow-hidden bg-(--color-pure-white) dark:bg-(--color-abyss) flex flex-col lg:flex-row font-sans transition-colors duration-300">
+      
       {/* LEFT COLUMN: The Banking App / Phone Simulator */}
-      <div className="w-full lg:w-1/2 flex items-center justify-center p-4 lg:p-12 relative bg-(--color-off-white-canvas) dark:bg-(--color-obsidian) transition-colors duration-300">
+      <div className="w-full lg:w-1/2 min-h-screen lg:min-h-0 lg:h-full lg:overflow-y-auto flex items-center justify-center p-4 py-12 lg:p-12 relative bg-(--color-off-white-canvas) dark:bg-(--color-obsidian) transition-colors duration-300">
+        
         {/* Neon Accent Glow */}
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-100 h-100 bg-(--color-electric-lime) dark:bg-(--color-iris-gleam) rounded-full blur-[150px] opacity-20 pointer-events-none transition-colors duration-300" />
 
         <motion.div
           initial={{ y: 20, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
-          className="relative w-full max-w-100 min-h-175 bg-(--color-pure-white) dark:bg-(--color-graphite-dark) rounded-4xl border border-(--color-ash) dark:border-(--color-steel) shadow-2xl overflow-hidden flex flex-col transition-colors duration-300"
+          className="relative w-full max-w-100 min-h-[700px] bg-(--color-pure-white) dark:bg-(--color-graphite-dark) rounded-4xl border border-(--color-ash) dark:border-(--color-steel) shadow-2xl overflow-hidden flex flex-col transition-colors duration-300"
         >
-          {/* Scanning Overlay (Appears when Pay is clicked) */}
+          {/* Scanning Overlay */}
           <AnimatePresence>
             {isExtracting && (
               <motion.div
@@ -164,11 +153,7 @@ const handleChange = (e) => {
               >
                 <motion.div
                   animate={{ y: [-20, 20, -20] }}
-                  transition={{
-                    repeat: Infinity,
-                    duration: 1.5,
-                    ease: "linear",
-                  }}
+                  transition={{ repeat: Infinity, duration: 1.5, ease: "linear" }}
                 >
                   <ScanLine className="w-16 h-16 mb-4 opacity-80" />
                 </motion.div>
@@ -216,11 +201,7 @@ const handleChange = (e) => {
                   <input
                     type="text"
                     inputMode="numeric"
-                    value={
-                      amount === "" || amount === 0
-                        ? ""
-                        : Number(amount).toLocaleString("en-IN")
-                    }
+                    value={amount === "" || amount === 0 ? "" : Number(amount).toLocaleString("en-IN")}
                     onChange={handleChange}
                     placeholder="0"
                     className="w-48 text-5xl font-extrabold text-(--color-off-black-ink) dark:text-white bg-transparent focus:outline-none text-left"
@@ -234,7 +215,7 @@ const handleChange = (e) => {
               <motion.button
                 whileTap={{ scale: 0.95 }}
                 type="submit"
-                className="w-full py-4 rounded-(--radius-full) bg-(--color-electric-lime) dark:bg-(--color-iris-gleam) text-(--color-off-black-ink) dark:text-white font-bold text-lg shadow-[0_0_20px_rgba(190,255,80,0.3)] dark:shadow-[0_0_20px_rgba(132,125,255,0.3)] flex items-center justify-center space-x-2 transition-all hover:shadow-[0_0_30px_rgba(190,255,80,0.5)] dark:hover:shadow-[0_0_30px_rgba(132,125,255,0.5)] cursor-pointer"
+                className="w-full py-4 rounded-full bg-(--color-electric-lime) dark:bg-(--color-iris-gleam) text-(--color-off-black-ink) dark:text-white font-bold text-lg shadow-[0_0_20px_rgba(190,255,80,0.3)] dark:shadow-[0_0_20px_rgba(132,125,255,0.3)] flex items-center justify-center space-x-2 transition-all hover:shadow-[0_0_30px_rgba(190,255,80,0.5)] dark:hover:shadow-[0_0_30px_rgba(132,125,255,0.5)] cursor-pointer"
               >
                 <span>Pay Securely</span>
                 <Send className="w-5 h-5" />
@@ -245,163 +226,13 @@ const handleChange = (e) => {
       </div>
 
       {/* RIGHT COLUMN: Real-Time Feature Terminal */}
-      <div className="w-full lg:w-1/2 bg-(--color-pure-white) dark:bg-[#090a0b] border-l border-(--color-ash) dark:border-gray-800 p-6 lg:p-12 flex flex-col h-full transition-colors duration-300">
-        <div className="flex items-center justify-between gap-3 mb-8">
-          <div className="flex items-center gap-3">
-            <Cpu className="w-8 h-8 text-(--color-electric-lime) dark:text-(--color-iris-gleam)" />
-            <div>
-              <h2 className="text-2xl font-bold text-(--color-off-black-ink) dark:text-white tracking-tight">
-                On-Device Extraction
-              </h2>
-              <p className="text-sm text-(--color-graphite) dark:text-gray-400">
-                Real-time local hardware and environmental state.
-              </p>
-            </div>
-          </div>
-          <ThemeToggle isDark={isDark} setIsDark={setIsDark} />
-        </div>
-
-        {/* Presenter Overrides */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-          {[
-            { id: "activeCall", label: "Call Active", icon: PhoneCall },
-            { id: "newDevice", label: "New Device", icon: Smartphone },
-            { id: "firstTimePayee", label: "New Payee", icon: UserPlus },
-          ].map((item) => (
-            <div
-              key={item.id}
-              onClick={() => toggleTelemetry(item.id)}
-              className={`p-3 rounded-lg border cursor-pointer transition-all flex items-center justify-center gap-2 text-sm font-bold ${
-                telemetry[item.id]
-                  ? "bg-(--color-electric-lime) dark:bg-(--color-iris-gleam) border-(--color-electric-lime) dark:border-(--color-iris-gleam) text-(--color-off-black-ink) dark:text-white"
-                  : "bg-(--color-off-white-canvas) dark:bg-(--color-graphite-dark) border-(--color-ash) dark:border-(--color-steel) text-(--color-graphite) dark:text-(--color-ash-dark) hover:border-(--color-off-black-ink) dark:hover:border-gray-600"
-              }`}
-            >
-              <item.icon className="w-4 h-4" />
-              {item.label}
-            </div>
-          ))}
-        </div>
-
-        {/* Syntax Highlighted JSON Terminal */}
-        <div className="flex-1 bg-(--color-off-white-canvas) dark:bg-[#141414] rounded-xl border border-(--color-ash) dark:border-gray-800 overflow-hidden flex flex-col font-mono shadow-2xl transition-colors duration-300">
-          <div className="bg-(--color-ash)/30 dark:bg-[#1a1a1a] px-4 py-3 border-b border-(--color-ash) dark:border-gray-800 flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <Terminal className="w-4 h-4 text-(--color-graphite) dark:text-gray-400" />
-              <span className="text-(--color-graphite) dark:text-gray-400 text-xs tracking-wider">
-                feature_vector.json
-              </span>
-            </div>
-            <div className="flex gap-2">
-              <span className="w-3 h-3 rounded-full bg-red-500/80"></span>
-              <span className="w-3 h-3 rounded-full bg-yellow-500/80"></span>
-              <span className="w-3 h-3 rounded-full bg-green-500/80"></span>
-            </div>
-          </div>
-
-          <div className="p-6 overflow-y-auto text-sm leading-relaxed flex-1">
-            <pre className="text-(--color-off-black-ink) dark:text-gray-300">
-              <span className="text-[#847dff]">{"{"}</span>
-              <br />
-              <span className="text-[#00b3dd]"> "timestamp"</span>:{" "}
-              <span className="text-[#beff50]">"{liveJSON.timestamp}"</span>,
-              <br />
-              <span className="text-[#00b3dd]">
-                {" "}
-                "transaction_features"
-              </span>: <span className="text-[#847dff]">{"{"}</span>
-              <br />
-              <span className="text-[#00b3dd]"> "amount_inr"</span>:{" "}
-              <span className="text-[#dd90d8]">
-                {liveJSON.transaction_features.amount_inr}
-              </span>
-              ,
-              <br />
-              <span className="text-[#00b3dd]"> "payee_id"</span>:{" "}
-              <span className="text-[#beff50]">
-                "{liveJSON.transaction_features.payee_id}"
-              </span>
-              <br />
-              <span className="text-[#847dff]"> {"}"}</span>,
-              <br />
-              <span className="text-[#00b3dd]">
-                {" "}
-                "extracted_device_hardware"
-              </span>
-              : <span className="text-[#847dff]">{"{"}</span>
-              <br />
-              <span className="text-[#00b3dd]"> "os"</span>:{" "}
-              <span className="text-[#beff50]">
-                "{liveJSON.extracted_device_hardware.os}"
-              </span>
-              ,
-              <br />
-              <span className="text-[#00b3dd]"> "battery"</span>:{" "}
-              <span className="text-[#beff50]">
-                "{liveJSON.extracted_device_hardware.battery}"
-              </span>
-              ,
-              <br />
-              <span className="text-[#00b3dd]"> "network"</span>:{" "}
-              <span className="text-[#beff50]">
-                "{liveJSON.extracted_device_hardware.network}"
-              </span>
-              ,
-              <br />
-              <span className="text-[#00b3dd]"> "resolution"</span>:{" "}
-              <span className="text-[#beff50]">
-                "{liveJSON.extracted_device_hardware.screenResolution}"
-              </span>
-              <br />
-              <span className="text-[#847dff]"> {"}"}</span>,
-              <br />
-              <span className="text-[#00b3dd]">
-                {" "}
-                "situational_sensors"
-              </span>: <span className="text-[#847dff]">{"{"}</span>
-              <br />
-              <span className="text-[#00b3dd]"> "call_state_active"</span>:{" "}
-              <span
-                className={
-                  liveJSON.situational_sensors.call_state_active
-                    ? "text-[#ff4433]"
-                    : "text-[#dd90d8]"
-                }
-              >
-                {String(liveJSON.situational_sensors.call_state_active)}
-              </span>
-              ,
-              <br />
-              <span className="text-[#00b3dd]"> "device_match"</span>:{" "}
-              <span
-                className={
-                  liveJSON.situational_sensors.device_fingerprint_match
-                    ? "text-[#dd90d8]"
-                    : "text-[#ff4433]"
-                }
-              >
-                {String(liveJSON.situational_sensors.device_fingerprint_match)}
-              </span>
-              ,
-              <br />
-              <span className="text-[#00b3dd]"> "payee_in_contacts"</span>:{" "}
-              <span
-                className={
-                  liveJSON.situational_sensors.payee_in_contacts
-                    ? "text-[#dd90d8]"
-                    : "text-[#ff4433]"
-                }
-              >
-                {String(liveJSON.situational_sensors.payee_in_contacts)}
-              </span>
-              <br />
-              <span className="text-[#847dff]"> {"}"}</span>
-              <br />
-              <span className="text-[#847dff]">{"}"}</span>
-            </pre>
-          </div>
-        </div>
-      </div>
+      <TelemetryTerminal
+        isDark={isDark}
+        setIsDark={setIsDark}
+        telemetry={telemetry}
+        toggleTelemetry={toggleTelemetry}
+        liveJSON={liveJSON}
+      />
     </div>
   );
 };
