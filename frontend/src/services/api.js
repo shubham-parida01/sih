@@ -52,7 +52,7 @@ async function request(endpoint, options = {}) {
     const res = await fetch(`${API_BASE}${endpoint}`, {
       ...options,
       headers,
-      signal: AbortSignal.timeout(4000) // 4 second timeout to trigger mock fallback quickly
+      signal: AbortSignal.timeout(15000) // 15 second timeout to allow cold-start responses
     });
 
     const data = await res.json();
