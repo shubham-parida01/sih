@@ -51,6 +51,7 @@ datasets/
 ml/datasets/
 processed/
 artifacts/
+!frontend/admin/artifacts/
 *.csv
 *.csv.gz
 *.parquet
