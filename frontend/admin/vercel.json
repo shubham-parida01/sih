@@ -1,6 +1,0 @@
-{
-  "buildCommand": "cd artifacts/rakshapay-admin && npx vite build --config vite.config.ts",
-  "outputDirectory": "artifacts/rakshapay-admin/dist/public",
-  "installCommand": "pnpm install",
-  "framework": null
-}
