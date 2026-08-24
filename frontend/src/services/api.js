@@ -52,7 +52,7 @@ async function request(endpoint, options = {}) {
     const res = await fetch(`${API_BASE}${endpoint}`, {
       ...options,
       headers,
-      signal: AbortSignal.timeout(20000) // 15 second timeout to allow cold-start responses
+      signal: AbortSignal.timeout(60000) // 60 second timeout to allow backend cold starts
     });
 
     const data = await res.json();

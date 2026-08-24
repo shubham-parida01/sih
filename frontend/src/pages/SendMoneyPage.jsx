@@ -186,7 +186,7 @@ export default function SendMoneyPage() {
                 <div className="flex justify-between items-center pb-3 border-b border-slate-200/50">
                   <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Evaluation Risk Rating</span>
                   <span className="text-lg font-extrabold text-fintech-amber">
-                    {((result.risk_score || 0) * 100).toFixed(1)}%
+                    {(result.risk_score > 1 ? result.risk_score : (result.risk_score || 0) * 100).toFixed(1)}%
                   </span>
                 </div>
 

@@ -20,7 +20,7 @@ async def get_http_client() -> httpx.AsyncClient:
     if _http_client is None or _http_client.is_closed:
         _http_client = httpx.AsyncClient(
             base_url=settings.ML_SERVICE_URL,
-            timeout=httpx.Timeout(5.0, connect=3.0),
+            timeout=httpx.Timeout(60.0, connect=50.0),
         )
     return _http_client
 
