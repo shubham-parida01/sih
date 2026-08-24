@@ -59,6 +59,17 @@ Behavioral & Device Telemetry Capture
 * **Medium Risk (30 - 79)**: Transaction paused. Explanation cards prompt the user for step-up verification.
 * **Critical Risk (80 - 100)**: Transaction blocked. Real-time alert dispatched to the Admin dashboard via WebSockets.
 
+### Platform Interface Previews
+
+#### 🖥️ 1. Landing Workspace & Risk Sandbox
+![Landing Workspace & Simulator](./docs/assets/landing-page.png)
+
+#### 💳 2. Paytm-Style User Wallet Dashboard
+![User Dashboard](./docs/assets/user-dashboard.png)
+
+#### 📊 3. Administrative Threat Monitoring Console
+![Admin Console](./docs/assets/admin-dashboard.png)
+
 ---
 
 ## ⚡ Technical Stack
@@ -121,6 +132,16 @@ npm install
 npm run dev
 ```
 Open [http://localhost:5173/](http://localhost:5173/) to access the portal.
+
+---
+
+## 🚀 Live Deployment & Hosting
+
+| Service | Infrastructure / Tech | Deployment URL |
+| :--- | :--- | :--- |
+| **Enterprise Web Portal** | Vercel (React + Tailwind) | [raksha-pay-frontend.vercel.app](https://raksha-pay-frontend.vercel.app) |
+| **Core Backend Gateway** | Render Web Service (FastAPI) | [sih-irpg.onrender.com](https://sih-irpg.onrender.com) |
+| **ML Risk Microservice** | Render API (ONNX Runtime) | [sih-ml-service-ibak.onrender.com](https://sih-ml-service-ibak.onrender.com) |
 
 ---
 
