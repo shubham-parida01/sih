@@ -11,7 +11,7 @@
 
 <img src="https://img.shields.io/badge/Smart%20India%20Hackathon-2026-blue?style=for-the-badge">
 
-<img src="https://img.shields.io/badge/BROCODE 302-purple?style=for-the-badge">
+<img src="https://img.shields.io/badge/TEAM-BROCODE 302-purple?style=for-the-badge">
 
 <img src="https://img.shields.io/badge/FastAPI-0.115.6-green?style=for-the-badge&logo=fastapi">
 
