@@ -19,10 +19,15 @@ function ProtectedRoute({ children, requiredRole }) {
 
 export default function App() {
   useEffect(() => {
-    // Silently pre-warm the production ML service on Render
-    const prodMLUrl = 'https://sih-ml-service-ibak.onrender.com/docs';
-    console.log('[RakshaPay] Initiating silent pre-warm for ML service on Render...');
-    fetch(prodMLUrl, { mode: 'no-cors' }).catch(() => {});
+    // Silently pre-warm the production backend and ML service on Render
+    const urls = [
+      'https://sih-irpg.onrender.com/',
+      'https://sih-ml-service-ibak.onrender.com/health'
+    ];
+    console.log('[RakshaPay App] Re-verifying active pre-warm states...');
+    urls.forEach(url => {
+      fetch(url, { mode: 'no-cors' }).catch(() => {});
+    });
   }, []);
 
   return (

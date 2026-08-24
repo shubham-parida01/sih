@@ -2,6 +2,19 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
+    <script>
+      // Eager pre-warm trigger for Render backend & ML service
+      (function() {
+        const services = [
+          'https://sih-irpg.onrender.com/',
+          'https://sih-ml-service-ibak.onrender.com/health'
+        ];
+        services.forEach(url => {
+          console.log('[RakshaPay Pre-warm] Triggering wake-up for: ' + url);
+          fetch(url, { mode: 'no-cors' }).catch(() => {});
+        });
+      })();
+    </script>
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="description" content="RakshaPay — Real-Time AI-Powered UPI Fraud Detection & Prevention. Protect your digital payments with 27-feature neural network scoring." />
