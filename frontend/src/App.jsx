@@ -18,6 +18,13 @@ function ProtectedRoute({ children, requiredRole }) {
 }
 
 export default function App() {
+  useEffect(() => {
+    // Silently pre-warm the production ML service on Render
+    const prodMLUrl = 'https://sih-ml-service-ibak.onrender.com/docs';
+    console.log('[RakshaPay] Initiating silent pre-warm for ML service on Render...');
+    fetch(prodMLUrl, { mode: 'no-cors' }).catch(() => {});
+  }, []);
+
   return (
     <BrowserRouter>
       <Toaster

@@ -119,9 +119,8 @@ export default function SendMoneyPage() {
                     }}
                     placeholder="0.00"
                     required
-                    min="0.01"
+                    min="1"
                     max="100000"
-                    step="0.01"
                     className="w-48 bg-none border-none text-slate-900 font-extrabold outline-none text-center placeholder-slate-200"
                   />
                 </div>
@@ -213,7 +212,7 @@ export default function SendMoneyPage() {
                 <button 
                   type="button" 
                   onClick={handleCancel}
-                  className="flex-1 border border-slate-200 hover:bg-slate-50 text-slate-600 rounded-full py-3.5 text-sm font-semibold transition-all tap-press"
+                  className="flex-1 border border-slate-200 hover:bg-slate-550 text-slate-600 rounded-full py-3.5 text-sm font-semibold transition-all tap-press"
                 >
                   Cancel Payment
                 </button>
@@ -249,7 +248,7 @@ export default function SendMoneyPage() {
                   transition={{ type: 'spring', stiffness: 200 }}
                   className="w-16 h-16 rounded-full bg-emerald-50 border border-emerald-100 flex items-center justify-center mx-auto mb-6"
                 >
-                  <CheckCircle size={32} className="text-fintech-emerald" />
+                  <CheckCircle2 size={32} className="text-fintech-emerald" />
                 </motion.div>
               ) : (
                 /* Failed block shake visual */

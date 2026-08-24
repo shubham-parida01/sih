@@ -1,9 +1,9 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ShieldCheck, Mail, Lock, User, Smartphone, ArrowRight, Loader2, KeyRound } from 'lucide-react';
+import { ShieldCheck, Mail, Lock, User, Smartphone, ArrowRight, Loader2, KeyRound, Sparkles } from 'lucide-react';
 import toast from 'react-hot-toast';
-import { auth, saveSession } from '../services/api';
+import { auth, saveSession, transaction } from '../services/api';
 
 export default function AuthPage() {
   const navigate = useNavigate();
@@ -61,6 +61,91 @@ export default function AuthPage() {
     }
   };
 
+  const triggerAdminDemo = async () => {
+    setLoading(true);
+    setRoleMode('admin');
+    try {
+      const res = await auth.login({
+        email: 'admin@sih2026.com',
+        password: 'AdminSecurePass123!',
+      });
+      saveSession(res.data);
+      toast.success('Accessing Admin Workspace...');
+      navigate('/admin');
+    } catch (err) {
+      console.warn("Admin login failed on backend. Falling back to local mock session:", err);
+      saveSession({
+        access_token: "mock_token_jwt_123",
+        refresh_token: "mock_refresh_jwt_123",
+        role: "admin",
+        user_id: "mock_admin_123",
+        full_name: "System Administrator"
+      });
+      toast.success('Accessing Local Sandbox Admin Workspace...');
+      navigate('/admin');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const triggerUserDemo = async () => {
+    setLoading(true);
+    setRoleMode('user');
+    const uniqueId = Date.now().toString().slice(-6);
+    const demoEmail = `demo_${uniqueId}@sih2026.com`;
+    const demoPass = 'UserSecurePass123!';
+    const demoName = `Demo User #${uniqueId}`;
+    const demoPhone = `+91${Date.now().toString().slice(-10)}`;
+    const DerivedUpi = `demo_${uniqueId}@upi`;
+
+    try {
+      await auth.register({
+        email: demoEmail,
+        password: demoPass,
+        full_name: demoName,
+        phone: demoPhone,
+        upi_id: DerivedUpi,
+      });
+
+      const res = await auth.login({
+        email: demoEmail,
+        password: demoPass,
+      });
+      saveSession(res.data);
+
+      try {
+        await transaction.initiate({
+          payee_upi: 'retailer@upi',
+          payee_name: 'Grocery Mart',
+          amount: 1450.00
+        });
+        await transaction.initiate({
+          payee_upi: 'powergrid@upi',
+          payee_name: 'Electricity Board',
+          amount: 3200.00
+        });
+      } catch (e) {
+        // Fallback silently if seeding fails
+      }
+
+      toast.success(`Registered & Logged in as ${demoName}!`);
+      navigate('/wallet');
+    } catch (err) {
+      console.warn("User registration failed on backend. Falling back to local mock session:", err);
+      saveSession({
+        access_token: "mock_token_jwt_123",
+        refresh_token: "mock_refresh_jwt_123",
+        role: "user",
+        user_id: "mock_user_123",
+        full_name: demoName
+      });
+      toast.success(`Accessing Local Sandbox as ${demoName}!`);
+      navigate('/wallet');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center py-12 px-4 sm:px-6 lg:px-8 relative">
       {/* Decorative subtle background gradient blur */}
@@ -81,6 +166,33 @@ export default function AuthPage() {
 
         <h2 className="text-2xl font-bold text-slate-900 text-center mb-1">Access Portal</h2>
         <p className="text-slate-500 text-xs text-center mb-6">Select your entry route to proceed to the workspace</p>
+
+        {/* Quick Demo Access Shortcuts */}
+        <div className="bg-slate-50 border border-slate-100 rounded-2xl p-4 mb-6">
+          <div className="flex items-center gap-2 text-[10px] font-bold text-fintech-blue uppercase tracking-wider mb-3">
+            <Sparkles size={12} /> Quick Demo Sandbox Access
+          </div>
+          <div className="flex gap-3">
+            <button 
+              type="button" 
+              onClick={triggerUserDemo} 
+              disabled={loading}
+              className="flex-1 flex flex-col items-center gap-2 bg-white border border-slate-200 hover:border-slate-300 rounded-xl py-3 text-xs font-semibold text-slate-700 transition-all tap-press hover:bg-slate-550"
+            >
+              <User size={14} className="text-fintech-blue" />
+              Demo User Portal
+            </button>
+            <button 
+              type="button" 
+              onClick={triggerAdminDemo} 
+              disabled={loading}
+              className="flex-1 flex flex-col items-center gap-2 bg-white border border-slate-200 hover:border-slate-300 rounded-xl py-3 text-xs font-semibold text-slate-700 transition-all tap-press hover:bg-slate-550"
+            >
+              <ShieldCheck size={14} className="text-fintech-blue" />
+              Demo Bank Admin
+            </button>
+          </div>
+        </div>
 
         {/* Role selector tab */}
         <div className="flex bg-slate-100 rounded-xl p-1 mb-6 border border-slate-200/50">
