@@ -3,677 +3,143 @@
 </h1>
 
 <h3 align="center">
-  AI-Powered Real-Time UPI Fraud Prevention & Risk Intelligence Platform
+  Enterprise-Grade Pre-Transaction UPI Fraud Mitigation & Risk Intelligence Suite
 </h3>
 
-
 <p align="center">
-
-<img src="https://img.shields.io/badge/Smart%20India%20Hackathon-2026-blue?style=for-the-badge">
-
-<img src="https://img.shields.io/badge/Team-SOAIDEATHON--S40-purple?style=for-the-badge">
-
-<img src="https://img.shields.io/badge/FastAPI-0.115.6-green?style=for-the-badge&logo=fastapi">
-
-<img src="https://img.shields.io/badge/React-18-black?style=for-the-badge&logo=react">
-
-<img src="https://img.shields.io/badge/MongoDB-Atlas-success?style=for-the-badge&logo=mongodb">
-
-<img src="https://img.shields.io/badge/ONNX-Runtime-orange?style=for-the-badge">
-
+  <img src="https://img.shields.io/badge/Status-Enterprise--Ready-success?style=for-the-badge">
+  <img src="https://img.shields.io/badge/FastAPI-0.115.6-blue?style=for-the-badge&logo=fastapi">
+  <img src="https://img.shields.io/badge/React-18-61DAFB?style=for-the-badge&logo=react">
+  <img src="https://img.shields.io/badge/Tailwind-CSS--v3-38B2AC?style=for-the-badge&logo=tailwind-css">
+  <img src="https://img.shields.io/badge/MongoDB-Atlas-47A248?style=for-the-badge&logo=mongodb">
+  <img src="https://img.shields.io/badge/ONNX-Runtime-orange?style=for-the-badge">
 </p>
-
 
 <hr>
 
+## 🚨 Executive Summary & Threat Landscape
 
-<h2>🚨 Problem Statement</h2>
+Traditional fraud detection systems in retail payment rails operate **post-transaction**, analyzing transactions retrospectively. This creates lag, making recovery difficult. 
 
-<p>
-Digital payment fraud is rapidly increasing. Existing fraud detection systems mostly analyze transactions after completion, making prevention difficult.
-</p>
+**RakshaPay** is a privacy-preserving pre-transaction risk engine that intercepts suspicious transactions *before* funds leave the user's account. By performing real-time analysis at the edge and bridging client-side metrics with backend telemetry, RakshaPay stops fraud, coercion, and voice phishing scams before settlement occurs.
 
-<p>
-RakshaPay introduces a privacy-preserving AI security layer that predicts fraud risk before a UPI transaction is executed.
-</p>
+### Unified Security Vector Scrutiny:
+* **Coercion & Behavioral Analytics**: Real-time evaluation of typing velocity anomalies, input copy-paste detection, and abnormal user interaction sequences.
+* **On-Device Fingerprinting**: Hashed device identifier swappings and virtual emulator execution flags.
+* **Location Velocity Audits**: Geolocation travel coordinates vs velocity limit thresholds.
+* **Voice Phishing (Vishing) Mitigation**: Call background frequencies and atypical calling velocities.
 
+---
 
-<h3>RakshaPay analyses:</h3>
+## 🏗️ System Architecture & Flow
 
-<ul>
-<li>Transaction behaviour</li>
-<li>Device identity changes</li>
-<li>User interaction patterns</li>
-<li>Typing behaviour</li>
-<li>Location anomalies</li>
-<li>Voice phishing indicators</li>
-</ul>
-
-
-<hr>
-
-
-<h2>💡 Solution Overview</h2>
-
-
-<p>
-RakshaPay works as a real-time transaction interception engine.
-</p>
-
-
-<pre>
-
-User Initiates Payment
-
+```
+User Action: Click Send
           |
           ↓
-
-Behaviour & Device Data Collection
-
+Behavioral & Device Telemetry Capture
           |
           ↓
-
-AI Risk Intelligence Engine
-
+ Fast API Gateway Integration
           |
           ↓
-
-Risk Score Generation
-
+  ONNX Risk Engine Model Scoring
           |
           ↓
+  Real-Time Decision Logic
+       /          |          \
+      ↓           ↓           ↓
+   [LOW]       [MEDIUM]    [CRITICAL]
+  Auto-Pass     Review       Block
+ (Settlement)  (Step-Up)    (Flag Alert)
+```
 
-Decision Engine
+### Risk Verdict Guidelines:
+* **Low Risk (0 - 29)**: Settlement clears instantly.
+* **Medium Risk (30 - 79)**: Transaction paused. Explanation cards prompt the user for step-up verification.
+* **Critical Risk (80 - 100)**: Transaction blocked. Real-time alert dispatched to the Admin dashboard via WebSockets.
 
+---
 
-       /        |        \
+## ⚡ Technical Stack
 
-  Approve    Verify    Block
+* **Frontend**: React 18, Tailwind CSS, Lucide icons, Framer Motion, Recharts charts.
+* **Backend Core**: FastAPI, JWT Authentication, WebSockets, Motor (Async MongoDB Driver).
+* **ML Inference**: ONNX Runtime, Python Uvicorn microservices.
+* **Database**: MongoDB Atlas.
 
+---
 
-</pre>
+## 🛠️ Fail-Safe Presentation Engineering
 
+For evaluation and offline presentation environments, RakshaPay implements two key fail-safe architectures:
 
+### 1. High-Fidelity Sandbox Mode
+* **API Resiliency**: The API client (`api.js`) wraps all network fetches in a 20-second timeout. If the database connection times out or the uvicorn backend goes offline, the frontend seamlessly transitions to **Sandbox Fallback Mode**.
+* **Zero Downtime**: Logs in and renders complete mock dashboards containing transaction feeds, charts, and administrative registries automatically.
 
-<h3>Risk Classification</h3>
+### 2. Silent Pre-Warming Hook
+* **Container Sleep Bypass**: Render's free tier spins down containers after 15 minutes of inactivity. To prevent 502/504 errors on user presentations, a background mounting hook in `App.jsx` issues a silent wake-up trigger (`mode: 'no-cors'`) to the production ML URL (`https://sih-ml-service-ibak.onrender.com/docs`) the moment the site opens.
+* **Responsive Payments**: The ML service is awake and ready by the time the user logs in and starts a transaction.
 
+---
 
-<pre>
+## 🏃 Local Setup & Run Guide
 
-0 ----------------------------- 100
+To boot the entire RakshaPay ecosystem locally, follow these steps:
 
-LOW             MEDIUM          HIGH
-
-0-29            30-79           80+
-
-</pre>
-
-
-
-<hr>
-
-
-<h2>🏗️ System Architecture</h2>
-
-
-<p align="center">
-<img src="./docs/assets/architecture.png" width="900">
-</p>
-
-
-
-<table>
-
-<tr>
-<th>Component</th>
-<th>Purpose</th>
-</tr>
-
-
-<tr>
-<td>React Frontend</td>
-<td>User and Admin dashboards</td>
-</tr>
-
-<tr>
-<td>FastAPI Gateway</td>
-<td>Authentication, APIs and transaction handling</td>
-</tr>
-
-
-<tr>
-<td>ML Microservice</td>
-<td>Fraud prediction and behavioural analysis</td>
-</tr>
-
-
-<tr>
-<td>ONNX Runtime</td>
-<td>High-speed AI inference</td>
-</tr>
-
-
-<tr>
-<td>MongoDB Atlas</td>
-<td>User, transaction and alert storage</td>
-</tr>
-
-
-<tr>
-<td>WebSocket Layer</td>
-<td>Real-time fraud notifications</td>
-</tr>
-
-
-</table>
-
-
-
-<hr>
-
-
-<h2>🤖 AI Risk Intelligence Engine</h2>
-
-
-<p>
-RakshaPay uses a hybrid AI scoring architecture combining machine learning inference with behavioural security rules.
-</p>
-
-
-<pre>
-
-Raw Behaviour Data
-
-        |
-        ↓
-
-Feature Extraction
-
-        |
-        ↓
-
-27 Dimensional Feature Vector
-
-        |
-        ↓
-
-ONNX Model Inference
-
-        |
-        ↓
-
-Risk Probability
-
-        |
-        ↓
-
-Transaction Decision
-
-
-</pre>
-
-
-
-<h3>AI Features</h3>
-
-
-<h4>🖥 Device Intelligence</h4>
-
-<ul>
-<li>Device fingerprinting</li>
-<li>New device detection</li>
-<li>Emulator detection</li>
-<li>Device swap analysis</li>
-</ul>
-
-
-<h4>⌨ Behaviour Intelligence</h4>
-
-<ul>
-<li>Typing speed analysis</li>
-<li>Paste detection</li>
-<li>User interaction timing</li>
-<li>Navigation behaviour</li>
-</ul>
-
-
-<h4>🌍 Location Intelligence</h4>
-
-<ul>
-<li>Location deviation</li>
-<li>Travel velocity analysis</li>
-<li>Suspicious payment locations</li>
-</ul>
-
-
-<h4>🎙 Voice Fraud Detection</h4>
-
-<ul>
-<li>Vishing detection</li>
-<li>Social engineering indicators</li>
-</ul>
-
-
-
-<hr>
-
-
-<h2>⚡ Real-Time Decision Engine</h2>
-
-
-<table>
-
-<tr>
-<th>Risk Score</th>
-<th>Action</th>
-</tr>
-
-
-<tr>
-<td>
-<b>0-29</b>
-</td>
-
-<td>
-✅ Auto approve transaction
-</td>
-
-</tr>
-
-
-<tr>
-<td>
-<b>30-79</b>
-</td>
-
-<td>
-⚠ Pause transaction and request confirmation
-</td>
-
-</tr>
-
-
-<tr>
-<td>
-<b>80-100</b>
-</td>
-
-<td>
-❌ Block transaction and alert admin
-</td>
-
-</tr>
-
-
-</table>
-
-
-
-<hr>
-
-
-<h2>📊 Application Screenshots</h2>
-
-
-<h3>User Dashboard</h3>
-
-<p align="center">
-<img src="./docs/assets/user-dashboard.png" width="850">
-</p>
-
-
-<h3>Admin Monitoring Dashboard</h3>
-
-
-<p align="center">
-<img src="./docs/assets/admin-dashboard.png" width="850">
-</p>
-
-
-
-<hr>
-
-
-<h2>🚀 Live Deployment</h2>
-
-
-<table>
-
-<tr>
-<th>Service</th>
-<th>Technology</th>
-<th>Deployment</th>
-</tr>
-
-
-<tr>
-
-<td>
-Core Backend Gateway
-</td>
-
-<td>
-FastAPI
-</td>
-
-<td>
-<a href="https://sih-irpg.onrender.com">
-Live API
-</a>
-</td>
-
-</tr>
-
-
-<tr>
-
-<td>
-ML Risk Service
-</td>
-
-<td>
-FastAPI + ONNX Runtime
-</td>
-
-<td>
-<a href="https://sih-ml-service-ibak.onrender.com">
-Live ML API
-</a>
-</td>
-
-</tr>
-
-
-</table>
-
-
-
-<hr>
-
-
-<h2>🔌 API Reference</h2>
-
-
-<h3>Authentication</h3>
-
-
-<h4>Register User</h4>
-
-<pre>
-
-POST /api/auth/register
-
-</pre>
-
-
-<h4>Login</h4>
-
-<pre>
-
-POST /api/auth/login
-
-</pre>
-
-
-
-<hr>
-
-
-<h3>Transaction Risk Evaluation</h3>
-
-
-<h4>Initiate Transaction</h4>
-
-
-<pre>
-
-POST /api/transaction/initiate
-
-</pre>
-
-
-
-<pre>
-
-{
- "amount":25000,
-
- "upi_id":"receiver@upi",
-
- "behavioral_data":
- {
-   "typing_speed":120,
-   "is_pasted":false
- },
-
- "device_data":
- {
-   "device_id":"hashed_device",
-   "is_emulator":false
- }
-
-}
-
-</pre>
-
-
-
-<h4>Response</h4>
-
-
-<pre>
-
-{
-
-"risk_score":87,
-
-"decision":"BLOCK",
-
-"reason":
-"Suspicious device behaviour detected"
-
-}
-
-</pre>
-
-
-
-<hr>
-
-
-<h2>🔴 Real-Time Admin Alerts</h2>
-
-
-<p>
-RakshaPay uses WebSockets for instant security notifications.
-</p>
-
-
-<pre>
-
-WSS
-
-/api/admin/ws/{admin_id}
-
-</pre>
-
-
-
-Example Alert:
-
-
-<pre>
-
-Fraud Attempt Detected
-
-User:
-Rahul Sharma
-
-
-Amount:
-₹45,000
-
-
-Risk Score:
-92/100
-
-
-Reason:
-New Device + Abnormal Behaviour
-
-
-</pre>
-
-
-
-<hr>
-
-
-<h2>🛠️ Tech Stack</h2>
-
-
-<h3>Frontend</h3>
-
-<ul>
-<li>React.js</li>
-<li>Tailwind CSS</li>
-<li>WebSocket Client</li>
-</ul>
-
-
-<h3>Backend</h3>
-
-<ul>
-<li>FastAPI</li>
-<li>JWT Authentication</li>
-<li>REST APIs</li>
-</ul>
-
-
-<h3>AI/ML</h3>
-
-<ul>
-<li>ONNX Runtime</li>
-<li>Feature Engineering</li>
-<li>Behaviour Modelling</li>
-</ul>
-
-
-<h3>Database</h3>
-
-<ul>
-<li>MongoDB Atlas</li>
-</ul>
-
-
-
-<hr>
-
-
-<h2>🏃 Local Setup</h2>
-
-
-<h3>Clone Repository</h3>
-
-
-<pre>
-
-git clone https://github.com/shubham-parida01/sih.git
-
-cd sih
-
-</pre>
-
-
-
-<h3>Run ML Service</h3>
-
-
-<pre>
-
+### 1. Run ML Scoring Service
+```bash
 cd ml_service
-
 python -m venv venv
+# Windows:
+.\venv\Scripts\activate
+# Unix:
+source venv/bin/activate
 
 pip install -r requirements.txt
+uvicorn app.main:app --host 0.0.0.0 --port 8001
+```
 
-uvicorn app.main:app --port 8001
-
-</pre>
-
-
-
-<h3>Run Backend</h3>
-
-
-<pre>
-
+### 2. Run Core Backend Gateway
+```bash
 cd backend
+python -m venv venv
+# Windows:
+.\venv\Scripts\activate
+# Unix:
+source venv/bin/activate
 
 pip install -r requirements.txt
+uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+```
 
-uvicorn app.main:app --port 8000
+### 3. Run Frontend App
+```bash
+cd frontend
+npm install
+npm run dev
+```
+Open [http://localhost:5173/](http://localhost:5173/) to access the portal.
 
-</pre>
+---
 
+## 🔌 Core API Specifications
 
+| Method | Endpoint | Description |
+| :--- | :--- | :--- |
+| `POST` | `/api/auth/register` | Create user profile with custom UPI ID |
+| `POST` | `/api/auth/login` | Retrieve JWT access and refresh tokens |
+| `POST` | `/api/transaction/initiate` | Initiates payment risk evaluation |
+| `POST` | `/api/transaction/confirm/{id}` | Confirm paused payment |
+| `POST` | `/api/transaction/cancel/{id}` | Cancel paused payment |
+| `GET` | `/api/admin/dashboard` | Access aggregate fraud statistics |
+| `WS` | `/api/admin/ws/{admin_id}` | Live administrative alert pipeline |
 
-<hr>
+---
 
+## 🔐 Privacy & Security Standards
 
-<h2>🔐 Privacy & Security</h2>
-
-
-<ul>
-
-<li>Privacy-first data processing</li>
-
-<li>Hashed device identities</li>
-
-<li>No raw sensitive behaviour storage</li>
-
-<li>JWT based authentication</li>
-
-<li>Role based access control</li>
-
-</ul>
-
-
-
-<hr>
-
-
-<h2>🔮 Future Roadmap</h2>
-
-
-<ul>
-
-<li>Advanced voice fraud detection</li>
-
-<li>Graph based fraud relationship analysis</li>
-
-<li>Federated learning based privacy improvement</li>
-
-<li>Banking API integration</li>
-
-</ul>
-
-
-
-<hr>
-
-
-<h2 align="center">
-
-🏆 Built for Smart India Hackathon 2026
-
-</h2>
-
-
-<p align="center">
-
-<b>
-RakshaPay — Stop Fraud Before Money Moves.
-</b>
-
-</p>
+* **Hashed Fingerprints**: Device identifiers are salted and hashed on the client-side to ensure compliance with banking secrecy codes.
+* **Ephemeral Audits**: Behavioral patterns are validated dynamically at the API gateway edge. No raw behavioral data is logged to persistent storage.
+* **Role-Based Routing**: Strict JSON Web Token validation isolates administrative tools from public portals.
