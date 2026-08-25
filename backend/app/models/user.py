@@ -60,13 +60,11 @@ def create_user_document(
     Create a user document dict ready for MongoDB insertion.
     """
     now = datetime.now(timezone.utc)
-    return {
+    doc = {
         "email": email,
-        "phone": phone,
         "full_name": full_name,
         "hashed_password": hashed_password,
         "role": role.value,
-        "upi_id": upi_id,
         "is_active": True,
         "device_fingerprint": None,
         "profile": {
@@ -78,3 +76,8 @@ def create_user_document(
         "created_at": now,
         "updated_at": now,
     }
+    if phone is not None:
+        doc["phone"] = phone
+    if upi_id is not None:
+        doc["upi_id"] = upi_id
+    return doc

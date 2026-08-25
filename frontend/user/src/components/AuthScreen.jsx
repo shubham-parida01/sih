@@ -1,7 +1,9 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Eye, EyeOff, XCircle } from 'lucide-react';
+import toast from 'react-hot-toast';
 import ThemeToggle from './ThemeToggle';
+import { auth, saveSession } from '../services/api';
 
 export const AuthScreen = ({ onLogin, isDark: externalIsDark, setIsDark: externalSetIsDark }) => {
   const [isLogin, setIsLogin] = useState(true);
@@ -9,6 +11,10 @@ export const AuthScreen = ({ onLogin, isDark: externalIsDark, setIsDark: externa
   const [internalIsDark, setInternalIsDark] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [fullName, setFullName] = useState('');
+  const [phone, setPhone] = useState('');
+  const [upiId, setUpiId] = useState('');
+  const [loading, setLoading] = useState(false);
 
   const isDark = externalIsDark !== undefined ? externalIsDark : internalIsDark;
   const toggleTheme = (newValue) => {
@@ -20,9 +26,45 @@ export const AuthScreen = ({ onLogin, isDark: externalIsDark, setIsDark: externa
     }
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    if (onLogin) onLogin();
+    if (!email || !password) {
+      toast.error("Please fill in email and password");
+      return;
+    }
+    setLoading(true);
+
+    try {
+      if (isLogin) {
+        const res = await auth.login({ email, password });
+        saveSession(res.data);
+        toast.success(`Welcome back, ${res.data.full_name || 'User'}!`);
+        if (onLogin) onLogin();
+      } else {
+        if (!fullName) {
+          toast.error("Please enter your full name");
+          setLoading(false);
+          return;
+        }
+        await auth.register({
+          email,
+          password,
+          full_name: fullName,
+          phone: phone || undefined,
+          upi_id: upiId || `${email.split('@')[0]}@upi`,
+        });
+
+        // Automatically log in
+        const res = await auth.login({ email, password });
+        saveSession(res.data);
+        toast.success("Account created successfully!");
+        if (onLogin) onLogin();
+      }
+    } catch (err) {
+      toast.error(err.detail || err.message || 'Authentication failed');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -68,32 +110,34 @@ export const AuthScreen = ({ onLogin, isDark: externalIsDark, setIsDark: externa
               {/* Header */}
               <div className="mb-6">
                 <h2 className="text-(length:--text-heading) font-semibold text-(--color-off-black-ink) dark:text-(--color-cloud) tracking-tight">
-                  {isLogin ? 'Welcome back' : 'Welcome'}
+                  {isLogin ? 'Welcome back' : 'Create Account'}
                 </h2>
                 <p className="text-(length:--text-body-sm) text-(--color-graphite) dark:text-(--color-ash-dark) mt-1">
-                  {isLogin ? 'Sign in to your account' : 'Sign up for new account'}
+                  {isLogin ? 'Sign in to your account' : 'Sign up for a secure user account'}
                 </p>
-              </div>
-
-              {/* Google Button */}
-              <button
-                type="button"
-                onClick={() => onLogin && onLogin()}
-                className="w-full bg-transparent border border-(--color-ash) dark:border-(--color-steel) rounded-(--radius-full) py-2.5 px-4 flex items-center justify-center gap-2.5 text-(length:--text-body-sm) font-medium text-(--color-off-black-ink) dark:text-(--color-cloud) hover:bg-(--color-pure-white)/60 dark:hover:bg-white/10 transition-colors cursor-pointer"
-              >
-                <XCircle className="w-4 h-4 text-(--color-off-black-ink) dark:text-(--color-cloud) shrink-0" />
-                <span>{isLogin ? 'Sign in with Google' : 'Sign up with Google'}</span>
-              </button>
-
-              {/* Divider */}
-              <div className="flex items-center my-6">
-                <div className="flex-1 border-t border-(--color-ash) dark:border-(--color-steel)" />
-                <span className="px-3 text-(length:--text-caption) text-(--color-graphite) dark:text-(--color-ash-dark)">or</span>
-                <div className="flex-1 border-t border-(--color-ash) dark:border-(--color-steel)" />
               </div>
 
               {/* Form */}
               <form onSubmit={handleSubmit} className="space-y-4">
+                {!isLogin && (
+                  <div>
+                    <label 
+                      htmlFor="fullName" 
+                      className="block text-(length:--text-caption) font-semibold text-(--color-off-black-ink) dark:text-(--color-cloud) mb-1.5"
+                    >
+                      Full Name
+                    </label>
+                    <input
+                      id="fullName"
+                      type="text"
+                      value={fullName}
+                      onChange={(e) => setFullName(e.target.value)}
+                      placeholder="Rohit Kumar"
+                      className="w-full bg-(--color-pure-white) dark:bg-(--color-abyss) border border-(--color-ash) dark:border-(--color-steel) rounded-md px-3.5 py-2.5 text-(length:--text-body-sm) text-(--color-off-black-ink) dark:text-(--color-cloud) placeholder-(--color-graphite)/60 dark:placeholder-(--color-ash-dark)/60 focus:outline-none focus:border-(--color-off-black-ink) dark:focus:border-(--color-iris-gleam) transition-colors"
+                    />
+                  </div>
+                )}
+
                 {/* Email Input */}
                 <div>
                   <label 
@@ -142,26 +186,15 @@ export const AuthScreen = ({ onLogin, isDark: externalIsDark, setIsDark: externa
                       )}
                     </button>
                   </div>
-
-                  {/* Forgot Password (ONLY if isLogin === true) */}
-                  {isLogin && (
-                    <div className="text-right mt-1.5">
-                      <a 
-                        href="#forgot-password" 
-                        className="text-(length:--text-caption) text-(--color-graphite) dark:text-(--color-ash-dark) hover:text-(--color-off-black-ink) dark:hover:text-white underline transition-colors cursor-pointer"
-                      >
-                        Forgot password?
-                      </a>
-                    </div>
-                  )}
                 </div>
 
                 {/* Primary Action Button */}
                 <button
                   type="submit"
-                  className="w-full bg-(--color-electric-lime) dark:bg-(--color-iris-gleam) text-(--color-off-black-ink) dark:text-white font-bold text-(length:--text-body-sm) py-3 rounded-(--radius-full) hover:opacity-90 active:scale-[0.99] transition-all cursor-pointer shadow-sm mt-6"
+                  disabled={loading}
+                  className="w-full bg-(--color-electric-lime) dark:bg-(--color-iris-gleam) text-(--color-off-black-ink) dark:text-white font-bold text-(length:--text-body-sm) py-3 rounded-(--radius-full) hover:opacity-90 active:scale-[0.99] transition-all cursor-pointer shadow-sm mt-6 disabled:opacity-50"
                 >
-                  {isLogin ? 'Sign in' : 'Sign up'}
+                  {loading ? 'Processing...' : isLogin ? 'Sign in' : 'Sign up'}
                 </button>
               </form>
 

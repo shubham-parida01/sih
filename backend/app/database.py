@@ -37,7 +37,15 @@ async def connect_to_mongodb():
         raise
 
     # Create indexes for data isolation and performance
-    await _create_indexes()
+    try:
+        await _create_indexes()
+    except Exception as e:
+        print(f"[*] Rebuilding index schema due to conflict: {e}")
+        try:
+            await db.users.drop_indexes()
+            await _create_indexes()
+        except Exception as err:
+            print(f"[WARNING] Could not drop/recreate indexes: {err}")
 
 
 async def close_mongodb_connection():

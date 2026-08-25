@@ -50,7 +50,7 @@ export const TelemetryTerminal = ({
       `}</style>
 
       {/* Added "terminal-scrollbar" class here */}
-      <div className="terminal-scrollbar w-full lg:w-1/2 h-[90vh] lg:h-full lg:overflow-y-auto bg-(--color-pure-white) dark:bg-[#090a0b] border-t lg:border-t-0 lg:border-l border-(--color-ash) dark:border-gray-800 p-4 py-8 lg:p-12 flex flex-col transition-colors duration-300">
+      <div className="terminal-scrollbar w-full h-full bg-slate-50 dark:bg-gray-900 border border-slate-200/60 dark:border-gray-800 rounded-3xl p-6 sm:p-8 flex flex-col transition-colors duration-300">
         <div className="flex items-center justify-between gap-3 mb-8">
           <div className="flex items-center gap-3">
             <Cpu className="w-8 h-8 text-(--color-electric-lime) dark:text-(--color-iris-gleam)" />

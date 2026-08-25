@@ -105,6 +105,37 @@ async def account_detail(
     return {"success": True, "data": data}
 
 
+@router.put("/accounts/{user_id}/status")
+async def toggle_account_status(
+    user_id: str,
+    admin: dict = Depends(require_admin)
+):
+    """
+    Toggle a user account's active status (Place hold / Release hold).
+    """
+    from bson.objectid import ObjectId
+    db = get_database()
+    
+    if not ObjectId.is_valid(user_id):
+        raise HTTPException(status_code=400, detail="Invalid user ID format")
+        
+    user = await db.users.find_one({"_id": ObjectId(user_id)})
+    if not user:
+        raise HTTPException(status_code=404, detail="User account not found")
+        
+    new_status = not user.get("is_active", True)
+    await db.users.update_one(
+        {"_id": ObjectId(user_id)},
+        {"$set": {"is_active": new_status, "updated_at": datetime.now(timezone.utc)}}
+    )
+    
+    return {
+        "success": True,
+        "message": f"Account status updated to {'Active' if new_status else 'On Hold'}",
+        "is_active": new_status
+    }
+
+
 @router.get("/accounts/{user_id}/transactions")
 async def account_transactions(
     user_id: str,

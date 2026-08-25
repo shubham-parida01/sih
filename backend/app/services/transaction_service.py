@@ -115,7 +115,7 @@ async def initiate_transaction(
     now = datetime.now(timezone.utc)
 
     if risk_score < RISK_THRESHOLD_LOW:
-        # LOW RISK → Auto-approve
+        # SAFE → Auto-approve
         new_status = TransactionStatus.COMPLETED.value
         # Deduct balance
         await db.users.update_one(
@@ -124,21 +124,22 @@ async def initiate_transaction(
         )
         completed_at = now
 
-    elif risk_score < RISK_THRESHOLD_HIGH:
-        # MEDIUM RISK → Pause for user review
-        new_status = TransactionStatus.PAUSED.value
-        completed_at = None
-
     else:
-        # HIGH/CRITICAL RISK → Block + Alert admin
-        new_status = TransactionStatus.BLOCKED.value
+        # Flagged (Medium or High risk)
+        if risk_score < RISK_THRESHOLD_HIGH:
+            new_status = TransactionStatus.PAUSED.value
+            alert_type = "suspicious_pattern"
+        else:
+            new_status = TransactionStatus.BLOCKED.value
+            alert_type = AlertType.HIGH_RISK.value
+
         completed_at = None
 
         # Create alert for admin
         alert_doc = create_alert_document(
             transaction_id=txn_id,
             user_id=user_id,
-            alert_type=AlertType.HIGH_RISK.value,
+            alert_type=alert_type,
             risk_score=risk_score,
             risk_explanation=risk_explanation,
             risk_factors=risk_factors,
