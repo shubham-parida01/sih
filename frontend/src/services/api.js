@@ -76,6 +76,7 @@ export const admin = {
     body: JSON.stringify({ action, review_notes: notes }),
   }),
   flaggedTransactions: (page = 1) => request(`/api/admin/transactions/flagged?page=${page}`),
+  createAccount: (body) => request('/api/admin/accounts', { method: 'POST', body: JSON.stringify(body) }),
 };
 
 // ─── WebSocket ───

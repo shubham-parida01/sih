@@ -12,6 +12,7 @@ from typing import Optional
 
 from bson import ObjectId
 
+from app.schemas.auth import RegisterRequest
 from app.schemas.admin import ReviewAlertRequest
 from app.services.admin_service import (
     get_admin_dashboard,
@@ -46,6 +47,34 @@ async def dashboard(admin: dict = Depends(require_admin)):
 
 
 # ─── Accounts ───
+
+@router.post("/accounts", response_model=dict, status_code=201)
+async def create_user_account(
+    request: RegisterRequest,
+    admin: dict = Depends(require_admin)
+):
+    """
+    Admin creates a new user account directly in the backend.
+    """
+    from app.services.auth_service import register_user
+    user = await register_user(
+        email=request.email,
+        password=request.password,
+        full_name=request.full_name,
+        phone=request.phone,
+        upi_id=request.upi_id,
+    )
+    return {
+        "success": True,
+        "message": "User account created successfully by administrator",
+        "data": {
+            "user_id": str(user["_id"]),
+            "email": user["email"],
+            "full_name": user["full_name"],
+            "role": user["role"],
+        }
+    }
+
 
 @router.get("/accounts")
 async def list_accounts(
