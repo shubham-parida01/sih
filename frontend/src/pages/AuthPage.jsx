@@ -167,33 +167,6 @@ export default function AuthPage() {
         <h2 className="text-2xl font-bold text-slate-900 text-center mb-1">Access Portal</h2>
         <p className="text-slate-500 text-xs text-center mb-6">Select your entry route to proceed to the workspace</p>
 
-        {/* Quick Demo Access Shortcuts */}
-        <div className="bg-slate-50 border border-slate-100 rounded-2xl p-4 mb-6">
-          <div className="flex items-center gap-2 text-[10px] font-bold text-fintech-blue uppercase tracking-wider mb-3">
-            <Sparkles size={12} /> Quick Demo Sandbox Access
-          </div>
-          <div className="flex gap-3">
-            <button 
-              type="button" 
-              onClick={triggerUserDemo} 
-              disabled={loading}
-              className="flex-1 flex flex-col items-center gap-2 bg-white border border-slate-200 hover:border-slate-300 rounded-xl py-3 text-xs font-semibold text-slate-700 transition-all tap-press hover:bg-slate-550"
-            >
-              <User size={14} className="text-fintech-blue" />
-              Demo User Portal
-            </button>
-            <button 
-              type="button" 
-              onClick={triggerAdminDemo} 
-              disabled={loading}
-              className="flex-1 flex flex-col items-center gap-2 bg-white border border-slate-200 hover:border-slate-300 rounded-xl py-3 text-xs font-semibold text-slate-700 transition-all tap-press hover:bg-slate-550"
-            >
-              <ShieldCheck size={14} className="text-fintech-blue" />
-              Demo Bank Admin
-            </button>
-          </div>
-        </div>
-
         {/* Role selector tab */}
         <div className="flex bg-slate-100 rounded-xl p-1 mb-6 border border-slate-200/50">
           {['User Portal', 'Bank Admin'].map((role, idx) => {
