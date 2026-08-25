@@ -3,6 +3,10 @@ import { ShieldCheck, ArrowRight, ShieldAlert, Cpu, Terminal, Users, ExternalLin
 import ThemeToggle from './ThemeToggle';
 
 export function LandingPage({ isDark, setIsDark }) {
+  const adminUrl = typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
+    ? 'http://localhost:5174'
+    : 'https://sih-jade-two.vercel.app';
+
   return (
     <div className="min-h-screen bg-(--color-pure-white) dark:bg-(--color-obsidian) transition-colors duration-300">
       {/* Navbar */}
@@ -20,7 +24,7 @@ export function LandingPage({ isDark, setIsDark }) {
         <div className="flex items-center gap-4">
           <ThemeToggle isDark={isDark} setIsDark={setIsDark} />
           <a 
-            href="http://localhost:5174" 
+            href={adminUrl} 
             target="_blank" 
             rel="noopener noreferrer"
             className="hidden sm:flex items-center gap-1.5 text-xs font-bold text-slate-600 dark:text-gray-300 hover:text-primary transition-colors"
@@ -52,7 +56,7 @@ export function LandingPage({ isDark, setIsDark }) {
             <ArrowRight size={16} />
           </Link>
           <a 
-            href="http://localhost:5174" 
+            href={adminUrl} 
             target="_blank" 
             rel="noopener noreferrer"
             className="flex h-12 items-center justify-center gap-2 rounded-full border border-slate-300 dark:border-gray-700 bg-transparent text-slate-800 dark:text-gray-200 font-extrabold text-sm px-8 hover:bg-slate-100 dark:hover:bg-slate-800 transition-all"
