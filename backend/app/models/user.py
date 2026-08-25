@@ -54,6 +54,7 @@ def create_user_document(
     role: UserRole = UserRole.USER,
     phone: Optional[str] = None,
     upi_id: Optional[str] = None,
+    initial_balance: Optional[float] = None,
 ) -> dict:
     """
     Create a user document dict ready for MongoDB insertion.
@@ -73,7 +74,7 @@ def create_user_document(
             "address": None,
             "pan_number": None,
         },
-        "balance": 50000.0,  # Starting balance for demo
+        "balance": initial_balance if initial_balance is not None else 50000.0,  # Starting balance for demo
         "created_at": now,
         "updated_at": now,
     }

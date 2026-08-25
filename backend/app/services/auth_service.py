@@ -33,6 +33,7 @@ async def register_user(
     full_name: str,
     phone: Optional[str] = None,
     upi_id: Optional[str] = None,
+    initial_balance: Optional[float] = None,
 ) -> dict:
     """
     Register a new user account.
@@ -72,6 +73,7 @@ async def register_user(
         role=UserRole.USER,
         phone=phone,
         upi_id=upi_id,
+        initial_balance=initial_balance,
     )
 
     result = await db.users.insert_one(user_doc)

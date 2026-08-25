@@ -140,3 +140,15 @@ class AlertListResponse(BaseModel):
     total: int
     page: int
     page_size: int
+
+
+from pydantic import EmailStr
+
+class AdminCreateUserRequest(BaseModel):
+    """Schema for admin creating a user account with optional initial balance."""
+    email: EmailStr
+    password: str = Field(..., min_length=8, max_length=128)
+    full_name: str = Field(..., min_length=2, max_length=100)
+    phone: Optional[str] = Field(None, pattern=r"^\+?[1-9]\d{9,14}$")
+    upi_id: Optional[str] = Field(None, pattern=r"^[\w.-]+@[\w]+$")
+    initial_balance: Optional[float] = Field(None, ge=0.0)

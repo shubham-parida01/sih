@@ -12,8 +12,7 @@ from typing import Optional
 
 from bson import ObjectId
 
-from app.schemas.auth import RegisterRequest
-from app.schemas.admin import ReviewAlertRequest
+from app.schemas.admin import AdminCreateUserRequest, ReviewAlertRequest
 from app.services.admin_service import (
     get_admin_dashboard,
     get_all_accounts,
@@ -50,7 +49,7 @@ async def dashboard(admin: dict = Depends(require_admin)):
 
 @router.post("/accounts", response_model=dict, status_code=201)
 async def create_user_account(
-    request: RegisterRequest,
+    request: AdminCreateUserRequest,
     admin: dict = Depends(require_admin)
 ):
     """
@@ -63,6 +62,7 @@ async def create_user_account(
         full_name=request.full_name,
         phone=request.phone,
         upi_id=request.upi_id,
+        initial_balance=request.initial_balance,
     )
     return {
         "success": True,
