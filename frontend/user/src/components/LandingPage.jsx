@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+import { useEffect } from 'react';
 import { ShieldCheck, ArrowRight, ShieldAlert, Cpu, Terminal, Users, ExternalLink } from 'lucide-react';
 import ThemeToggle from './ThemeToggle';
 
@@ -6,6 +7,12 @@ export function LandingPage({ isDark, setIsDark }) {
   const adminUrl = typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
     ? 'http://localhost:5174'
     : 'https://sih-jade-two.vercel.app';
+
+  useEffect(() => {
+    // Silent pre-warming wake-up calls to bypass Render free-tier cold starts
+    fetch('https://sih-ml-service-ibak.onrender.com/docs', { mode: 'no-cors' }).catch(() => {});
+    fetch('https://sih-irpg.onrender.com/docs', { mode: 'no-cors' }).catch(() => {});
+  }, []);
 
   return (
     <div className="min-h-screen bg-(--color-pure-white) dark:bg-(--color-obsidian) transition-colors duration-300">
