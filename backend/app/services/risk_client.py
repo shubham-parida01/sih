@@ -68,22 +68,11 @@ async def score_transaction(transaction_data: dict, user_history: dict) -> dict:
         except Exception as e:
             print(f"[WARN] ML service error (attempt {attempt + 1}): {e}")
 
-    # Fail-safe: if ML service is down, return MEDIUM risk
-    # This prevents blocking legitimate transactions while maintaining caution
-    print("[WARN] ML service unavailable -- defaulting to MEDIUM risk (fail-safe)")
-    return {
-        "risk_score": 45.0,
-        "risk_level": "medium",
-        "explanation": "Risk assessment service temporarily unavailable. Transaction paused for safety.",
-        "factors": [
-            {
-                "factor": "Service unavailable",
-                "contribution": 45,
-                "detail": "Could not complete automated risk assessment"
-            }
-        ],
-        "recommendation": "Please try again in a moment, or confirm to proceed.",
-    }
+    # Fail-safe: Raise a ServiceUnavailableException to block operations with raw errors
+    print("[ERROR] ML service unreachable -- throwing ServiceUnavailableException")
+    raise ServiceUnavailableException(
+        detail="Risk assessment service temporarily offline. Please try again."
+    )
 
 
 async def check_device(user_id: str, current_fingerprint: str) -> dict:
