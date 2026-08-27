@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { 
@@ -10,23 +10,12 @@ import {
   Sparkles, 
   CheckCircle2, 
   Zap, 
-  ShieldAlert,
-  ExternalLink
+  ShieldAlert 
 } from 'lucide-react';
 import ThemeToggle from './ThemeToggle';
 
 export const LandingPage = ({ isDark, setIsDark, onSignIn }) => {
   const navigate = useNavigate();
-
-  const adminUrl = typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
-    ? 'http://localhost:5174'
-    : 'https://sih-jade-two.vercel.app';
-
-  useEffect(() => {
-    // Silent pre-warming wake-up calls to bypass Render free-tier cold starts
-    fetch('https://sih-ml-service-ibak.onrender.com/docs', { mode: 'no-cors' }).catch(() => {});
-    fetch('https://sih-irpg.onrender.com/docs', { mode: 'no-cors' }).catch(() => {});
-  }, []);
 
   const handleSignInClick = () => {
     if (onSignIn) {
@@ -62,7 +51,7 @@ export const LandingPage = ({ isDark, setIsDark, onSignIn }) => {
   };
 
   return (
-    <div className="min-h-screen bg-[var(--color-pure-white)] dark:bg-[var(--color-obsidian)] text-[var(--color-off-black-ink)] dark:text-[var(--color-cloud)] transition-colors duration-300 flex flex-col font-sans select-none animate-fade-in">
+    <div className="min-h-screen bg-[var(--color-pure-white)] dark:bg-[var(--color-obsidian)] text-[var(--color-off-black-ink)] dark:text-[var(--color-cloud)] transition-colors duration-300 flex flex-col font-sans select-none">
       {/* Navbar */}
       <header className="w-full border-b border-[var(--color-ash)] dark:border-[var(--color-steel)] bg-[var(--color-pure-white)]/90 dark:bg-[var(--color-obsidian)]/90 backdrop-blur-md sticky top-0 z-50 transition-colors duration-300">
         <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
@@ -82,14 +71,6 @@ export const LandingPage = ({ isDark, setIsDark, onSignIn }) => {
           {/* Controls Right */}
           <div className="flex items-center gap-4">
             <ThemeToggle isDark={isDark} setIsDark={setIsDark} />
-            <a 
-              href={adminUrl} 
-              target="_blank" 
-              rel="noopener noreferrer"
-              className="hidden sm:flex items-center gap-1.5 text-xs font-bold text-[var(--color-graphite)] dark:text-[var(--color-ash-dark)] hover:text-[var(--color-electric-lime)] dark:hover:text-[var(--color-iris-gleam)] transition-colors"
-            >
-              Control Room <ExternalLink size={12} />
-            </a>
             <button
               type="button"
               onClick={handleSignInClick}
@@ -135,25 +116,16 @@ export const LandingPage = ({ isDark, setIsDark, onSignIn }) => {
             An explainable real-time fraud shield for UPI that stops coercion before the money moves.
           </motion.p>
 
-          {/* CTA Buttons */}
-          <motion.div variants={itemVariants} className="flex flex-col sm:flex-row gap-4 justify-center w-full max-w-lg">
+          {/* CTA Button */}
+          <motion.div variants={itemVariants}>
             <button
               type="button"
               onClick={handleGetStartedClick}
-              className="bg-[var(--color-electric-lime)] dark:bg-[var(--color-iris-gleam)] text-[var(--color-off-black-ink)] dark:text-[var(--color-cloud)] font-bold text-lg px-8 py-4 rounded-[var(--radius-full)] border border-[var(--color-ash)] dark:border-[var(--color-steel)] shadow-lg hover:shadow-xl hover:scale-105 active:scale-95 transition-all flex items-center justify-center gap-3 cursor-pointer"
+              className="bg-[var(--color-electric-lime)] dark:bg-[var(--color-iris-gleam)] text-[var(--color-off-black-ink)] dark:text-[var(--color-cloud)] font-bold text-lg px-8 py-4 rounded-[var(--radius-full)] border border-[var(--color-ash)] dark:border-[var(--color-steel)] shadow-lg hover:shadow-xl hover:scale-105 active:scale-95 transition-all flex items-center gap-3 cursor-pointer"
             >
-              <span>Launch Safe UPI Portal</span>
+              <span>Get Started Now</span>
               <ArrowRight className="w-5 h-5" />
             </button>
-            <a
-              href={adminUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex h-14 items-center justify-center gap-2 rounded-[var(--radius-full)] border border-[var(--color-ash)] dark:border-[var(--color-steel)] bg-transparent text-[var(--color-off-black-ink)] dark:text-[var(--color-cloud)] font-bold text-lg px-8 hover:bg-[var(--color-off-white-canvas)] dark:hover:bg-[var(--color-graphite-dark)] transition-all shadow-sm"
-            >
-              <span>Admin Control Room</span>
-              <ExternalLink className="w-5 h-5" />
-            </a>
           </motion.div>
         </motion.section>
 
