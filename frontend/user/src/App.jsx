@@ -151,6 +151,8 @@ function AppFlow() {
         upiId={modalData.upiId}
         explanation={modalData.explanation}
         recommendation={modalData.recommendation}
+        factors={modalData.factors}
+        riskScore={modalData.riskScore}
       />
     </div>
   );

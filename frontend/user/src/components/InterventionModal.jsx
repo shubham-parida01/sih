@@ -1,33 +1,33 @@
 import { motion, AnimatePresence } from 'framer-motion';
-import { ShieldAlert, PhoneCall, Smartphone, UserPlus } from 'lucide-react';
+import { ShieldAlert, PhoneCall, Smartphone, UserPlus, Sparkles, AlertTriangle, Cpu } from 'lucide-react';
 
-const riskFactors = [
+const defaultRiskFactors = [
   {
     id: 'active_call',
-    title: 'Active Phone Call',
-    description: 'You are on a call while making this high-value transfer',
+    factor: 'Active Phone Call',
+    detail: 'You are on an active phone call while making this transfer (Coercion risk)',
     icon: PhoneCall,
   },
   {
     id: 'unfamiliar_device',
-    title: 'Unfamiliar Device',
-    description: 'This transaction is from a device you rarely use',
+    factor: 'Unfamiliar Device',
+    detail: 'This transaction is initiated from an unrecognized device fingerprint',
     icon: Smartphone,
   },
   {
     id: 'first_time_payee',
-    title: 'First-Time Payee',
-    description: 'You have never sent money to this UPI ID before',
+    factor: 'First-Time Payee',
+    detail: 'First transaction to this recipient UPI ID',
     icon: UserPlus,
   },
 ];
 
-// Slower, more deliberate stagger animation
+// Stagger animation
 const containerVariants = {
   hidden: { opacity: 0 },
   show: {
     opacity: 1,
-    transition: { staggerChildren: 0.25, delayChildren: 0.6 }
+    transition: { staggerChildren: 0.2, delayChildren: 0.4 }
   }
 };
 
@@ -36,14 +36,29 @@ const itemVariants = {
   show: { opacity: 1, x: 0, transition: { type: 'spring', stiffness: 120, damping: 20 } }
 };
 
+function getFactorIcon(factorName = '') {
+  const name = factorName.toLowerCase();
+  if (name.includes('call') || name.includes('phone') || name.includes('vishing')) return PhoneCall;
+  if (name.includes('device') || name.includes('fingerprint')) return Smartphone;
+  if (name.includes('payee') || name.includes('recipient') || name.includes('contact')) return UserPlus;
+  if (name.includes('amount') || name.includes('large')) return AlertTriangle;
+  return ShieldAlert;
+}
+
 export const InterventionModal = ({
   isOpen = true, 
   onCancel,
   onProceed,
   amount = '25,000',
   payee = 'Ramesh Kumar',
-  upiId = 'ramesh@upi'
+  upiId = 'ramesh@upi',
+  explanation = '',
+  recommendation = '',
+  factors = [],
+  riskScore = 75
 }) => {
+  const displayFactors = factors && factors.length > 0 ? factors : defaultRiskFactors;
+
   return (
     <AnimatePresence>
       {isOpen && (
@@ -54,7 +69,7 @@ export const InterventionModal = ({
           transition={{ type: 'spring', damping: 30, stiffness: 120 }}
           className="fixed inset-0 z-50 flex flex-col md:flex-row w-full h-dvh bg-(--color-off-white-canvas) dark:bg-(--color-obsidian) overflow-hidden transition-colors duration-300"
         >
-          {/* LEFT PANEL: The Urgent Alert */}
+          {/* LEFT PANEL: Urgent Alert */}
           <div className="w-full md:w-5/12 bg-(--color-electric-lime) dark:bg-(--color-iris-gleam) p-6 md:p-12 flex flex-col justify-center items-center relative overflow-hidden shrink-0 transition-colors duration-300">
             {/* Subtle pulse background effect */}
             <motion.div 
@@ -74,6 +89,10 @@ export const InterventionModal = ({
               </motion.div>
               
               <div className="flex flex-col items-center">
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-black/15 dark:bg-white/20 text-xs font-bold text-(--color-off-black-ink) dark:text-white uppercase tracking-widest mb-2">
+                  <Cpu className="w-3.5 h-3.5" />
+                  Risk Score: {riskScore}/100
+                </span>
                 <motion.h2 
                   initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.4, duration: 0.6 }}
                   className="text-4xl md:text-5xl font-bold text-(--color-off-black-ink) dark:text-white leading-tight tracking-(--tracking-heading)"
@@ -82,79 +101,115 @@ export const InterventionModal = ({
                 </motion.h2>
                 <motion.p 
                   initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.5, duration: 0.6 }}
-                  className="mt-4 text-(length:--text-body) md:text-lg text-(--color-off-black-ink) dark:text-white opacity-90 max-w-sm mx-auto"
+                  className="mt-3 text-(length:--text-body) text-(--color-off-black-ink) dark:text-white opacity-90 max-w-sm mx-auto font-medium"
                 >
-                  RakshaPay's on-device model intercepted this transaction due to a high probability of coercion or social engineering.
+                  RakshaPay's ML model intercepted this transaction due to coercion signals.
                 </motion.p>
               </div>
             </div>
           </div>
 
-          {/* RIGHT PANEL: The Analysis & Actions */}
+          {/* RIGHT PANEL: Analysis & Derived Model Explanation */}
           <div className="w-full md:w-7/12 flex flex-col h-full bg-(--color-off-white-canvas) dark:bg-(--color-obsidian) relative transition-colors duration-300">
-            <div className="flex-1 overflow-y-auto p-6 md:p-12 lg:px-20 lg:py-16">
+            <div className="flex-1 overflow-y-auto p-6 md:p-10 lg:px-16 lg:py-12 space-y-6">
+              
+              {/* Payment Context Card */}
               <motion.div 
-                initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.5, duration: 0.6 }}
-                className="mb-8 p-5 bg-(--color-pure-white) dark:bg-(--color-graphite-dark) border border-(--color-ash) dark:border-(--color-steel) rounded-2xl"
+                initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3, duration: 0.5 }}
+                className="p-5 bg-(--color-pure-white) dark:bg-(--color-graphite-dark) border border-(--color-ash) dark:border-(--color-steel) rounded-2xl shadow-sm"
               >
                 <p className="text-(length:--text-body) text-(--color-off-black-ink) dark:text-(--color-cloud) leading-relaxed">
                   You are attempting to send <span className="font-bold text-xl">₹{amount}</span> to <br className="hidden md:block"/>
                   <span className="font-bold">{payee}</span> <span className="text-(--color-graphite) dark:text-(--color-ash-dark) text-sm">({upiId})</span>.
                 </p>
-                <p className="mt-3 text-(length:--text-body-sm) text-(--color-graphite) dark:text-(--color-ash-dark)">
-                  We paused this because our system detected the following unusual environmental patterns happening simultaneously:
-                </p>
               </motion.div>
 
-              {/* Staggered Explainability List */}
+              {/* Model Derived Explanation Card */}
               <motion.div 
-                variants={containerVariants} 
-                initial="hidden" 
-                animate="show" 
-                className="space-y-4"
+                initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4, duration: 0.5 }}
+                className="p-5 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800/50 rounded-2xl shadow-sm"
               >
-                {riskFactors.map((factor) => {
-                  const Icon = factor.icon;
-                  return (
-                    <motion.div
-                      variants={itemVariants}
-                      key={factor.id}
-                      className="bg-(--color-pure-white) dark:bg-(--color-graphite-dark) border border-(--color-ash) dark:border-(--color-steel) rounded-lg p-5 flex items-start gap-4 shadow-sm"
-                    >
-                      <div className="p-3 bg-(--color-off-white-canvas) dark:bg-(--color-abyss) rounded-full shrink-0">
-                        <Icon className="w-6 h-6 text-(--color-off-black-ink) dark:text-(--color-cloud)" />
-                      </div>
-                      <div className="pt-0.5">
-                        <h4 className="font-bold text-(length:--text-body) text-(--color-off-black-ink) dark:text-(--color-cloud)">
-                          {factor.title}
-                        </h4>
-                        <p className="text-(length:--text-body-sm) text-(--color-graphite) dark:text-(--color-ash-dark) mt-1">
-                          {factor.description}
-                        </p>
-                      </div>
-                    </motion.div>
-                  );
-                })}
+                <div className="flex items-center gap-2 mb-2 text-amber-900 dark:text-amber-300 font-bold text-sm">
+                  <Sparkles className="w-4 h-4 text-amber-600 dark:text-amber-400" />
+                  <span>AI MODEL DEDUCTION & REASONING</span>
+                </div>
+                <p className="text-sm font-medium text-amber-950 dark:text-amber-200 leading-relaxed">
+                  {explanation || "Payment paused: Our system detected unusual environmental pressure and situational signals occurring simultaneously."}
+                </p>
+                {recommendation && (
+                  <div className="mt-3 pt-3 border-t border-amber-200/60 dark:border-amber-800/40 text-xs font-semibold text-amber-800 dark:text-amber-300">
+                    💡 Recommendation: {recommendation}
+                  </div>
+                )}
               </motion.div>
+
+              {/* Dynamic Risk Factors List */}
+              <div>
+                <h3 className="text-xs uppercase font-bold tracking-widest text-(--color-graphite) dark:text-(--color-ash-dark) mb-3">
+                  PRIMARY RISK INDICATORS ({displayFactors.length})
+                </h3>
+
+                <motion.div 
+                  variants={containerVariants} 
+                  initial="hidden" 
+                  animate="show" 
+                  className="space-y-3"
+                >
+                  {displayFactors.map((factor, idx) => {
+                    const factorTitle = factor.factor || factor.title || "Risk Indicator";
+                    const factorDetail = factor.detail || factor.description || "Unusual activity detected";
+                    const Icon = getFactorIcon(factorTitle);
+
+                    return (
+                      <motion.div
+                        variants={itemVariants}
+                        key={idx}
+                        className="bg-(--color-pure-white) dark:bg-(--color-graphite-dark) border border-(--color-ash) dark:border-(--color-steel) rounded-xl p-4 flex items-start justify-between gap-4 shadow-sm"
+                      >
+                        <div className="flex items-start gap-3.5">
+                          <div className="p-2.5 bg-(--color-off-white-canvas) dark:bg-(--color-abyss) rounded-lg shrink-0 text-(--color-off-black-ink) dark:text-(--color-cloud)">
+                            <Icon className="w-5 h-5" />
+                          </div>
+                          <div>
+                            <h4 className="font-bold text-sm text-(--color-off-black-ink) dark:text-(--color-cloud)">
+                              {factorTitle}
+                            </h4>
+                            <p className="text-xs text-(--color-graphite) dark:text-(--color-ash-dark) mt-0.5 leading-relaxed">
+                              {factorDetail}
+                            </p>
+                          </div>
+                        </div>
+
+                        {factor.contribution && (
+                          <span className="shrink-0 text-xs font-bold px-2 py-1 rounded-full bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 border border-red-200 dark:border-red-800">
+                            +{factor.contribution}%
+                          </span>
+                        )}
+                      </motion.div>
+                    );
+                  })}
+                </motion.div>
+              </div>
+
             </div>
 
             {/* Sticky Action Buttons at Bottom */}
             <motion.div 
-              initial={{ y: 30, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 1.2, duration: 0.6 }}
-              className="p-6 md:px-12 lg:px-20 bg-linear-to-t from-(--color-off-white-canvas) dark:from-(--color-obsidian) via-(--color-off-white-canvas) dark:via-(--color-obsidian) to-transparent shrink-0"
+              initial={{ y: 30, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.8, duration: 0.5 }}
+              className="p-6 md:px-12 lg:px-16 bg-linear-to-t from-(--color-off-white-canvas) dark:from-(--color-obsidian) via-(--color-off-white-canvas) dark:via-(--color-obsidian) to-transparent shrink-0"
             >
               <div className="flex flex-col gap-3 max-w-2xl mx-auto">
                 <button
                   type="button"
                   onClick={onCancel}
-                  className="w-full py-4 px-6 rounded-(--radius-full) bg-(--color-off-black-ink) dark:bg-white text-(--color-electric-lime) dark:text-(--color-obsidian) font-bold text-(length:--text-body) hover:scale-[1.02] transition-transform active:scale-[0.98] shadow-lg cursor-pointer"
+                  className="w-full py-3.5 px-6 rounded-(--radius-full) bg-(--color-off-black-ink) dark:bg-white text-(--color-electric-lime) dark:text-(--color-obsidian) font-bold text-sm hover:scale-[1.01] transition-transform active:scale-[0.99] shadow-md cursor-pointer"
                 >
                   Cancel Payment (Recommended)
                 </button>
                 <button
                   type="button"
                   onClick={onProceed}
-                  className="w-full py-4 px-6 rounded-(--radius-full) bg-transparent border-2 border-(--color-ash) dark:border-(--color-steel) text-(--color-graphite) dark:text-(--color-ash-dark) hover:border-(--color-off-black-ink) dark:hover:border-white hover:text-(--color-off-black-ink) dark:hover:text-white font-bold text-(length:--text-body-sm) transition-colors active:scale-[0.98] cursor-pointer"
+                  className="w-full py-3 px-6 rounded-(--radius-full) bg-transparent border border-(--color-ash) dark:border-(--color-steel) text-(--color-graphite) dark:text-(--color-ash-dark) hover:border-(--color-off-black-ink) dark:hover:border-white hover:text-(--color-off-black-ink) dark:hover:text-white font-bold text-xs transition-colors active:scale-[0.99] cursor-pointer"
                 >
                   I understand the risks, send anyway
                 </button>
