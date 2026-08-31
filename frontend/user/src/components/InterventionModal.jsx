@@ -1,27 +1,6 @@
 import { motion, AnimatePresence } from 'framer-motion';
 import { ShieldAlert, PhoneCall, Smartphone, UserPlus, Sparkles, AlertTriangle, Cpu } from 'lucide-react';
 
-const defaultRiskFactors = [
-  {
-    id: 'active_call',
-    factor: 'Active Phone Call',
-    detail: 'You are on an active phone call while making this transfer (Coercion risk)',
-    icon: PhoneCall,
-  },
-  {
-    id: 'unfamiliar_device',
-    factor: 'Unfamiliar Device',
-    detail: 'This transaction is initiated from an unrecognized device fingerprint',
-    icon: Smartphone,
-  },
-  {
-    id: 'first_time_payee',
-    factor: 'First-Time Payee',
-    detail: 'First transaction to this recipient UPI ID',
-    icon: UserPlus,
-  },
-];
-
 // Stagger animation
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -39,7 +18,7 @@ const itemVariants = {
 function getFactorIcon(factorName = '') {
   const name = factorName.toLowerCase();
   if (name.includes('call') || name.includes('phone') || name.includes('vishing')) return PhoneCall;
-  if (name.includes('device') || name.includes('fingerprint')) return Smartphone;
+  if (name.includes('device') || name.includes('fingerprint') || name.includes('hardware')) return Smartphone;
   if (name.includes('payee') || name.includes('recipient') || name.includes('contact')) return UserPlus;
   if (name.includes('amount') || name.includes('large')) return AlertTriangle;
   return ShieldAlert;
@@ -57,7 +36,9 @@ export const InterventionModal = ({
   factors = [],
   riskScore = 75
 }) => {
-  const displayFactors = factors && factors.length > 0 ? factors : defaultRiskFactors;
+  // STRICT RULE: Only display factors explicitly returned from backend score evaluation.
+  // Never fall back to mock default risk factors.
+  const displayFactors = factors || [];
   const formattedScore = typeof riskScore === 'number' ? Number(riskScore.toFixed(1)) : riskScore;
 
   return (
@@ -167,7 +148,7 @@ export const InterventionModal = ({
                   <span>AI MODEL DEDUCTION & REASONING</span>
                 </div>
                 <p className="text-sm font-medium text-amber-950 dark:text-amber-200 leading-relaxed">
-                  {explanation || "Payment paused: Our system detected unusual environmental pressure and situational signals occurring simultaneously."}
+                  {explanation || "Payment paused: Risk signals triggered review criteria."}
                 </p>
                 {recommendation && (
                   <div className="mt-3 pt-3 border-t border-amber-200/60 dark:border-amber-800/40 text-xs font-semibold text-amber-800 dark:text-amber-300">
@@ -182,46 +163,56 @@ export const InterventionModal = ({
                   PRIMARY RISK INDICATORS ({displayFactors.length})
                 </h3>
 
-                <motion.div 
-                  variants={containerVariants} 
-                  initial="hidden" 
-                  animate="show" 
-                  className="space-y-3"
-                >
-                  {displayFactors.map((factor, idx) => {
-                    const factorTitle = factor.factor || factor.title || "Risk Indicator";
-                    const factorDetail = factor.detail || factor.description || "Unusual activity detected";
-                    const Icon = getFactorIcon(factorTitle);
+                {displayFactors.length === 0 ? (
+                  <div className="p-4 bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 rounded-xl text-xs font-medium text-gray-600 dark:text-gray-400">
+                    No specific situational risk flags selected.
+                  </div>
+                ) : (
+                  <motion.div 
+                    variants={containerVariants} 
+                    initial="hidden" 
+                    animate="show" 
+                    className="space-y-3"
+                  >
+                    {displayFactors.map((factor, idx) => {
+                      let factorTitle = factor.factor || factor.title || "Risk Indicator";
+                      // Clean up phrasing: replace "fingerprint" wording if present
+                      if (factorTitle.toLowerCase().includes("fingerprint")) {
+                        factorTitle = "New / Unrecognized Device";
+                      }
+                      const factorDetail = factor.detail || factor.description || "Unusual activity detected";
+                      const Icon = getFactorIcon(factorTitle);
 
-                    return (
-                      <motion.div
-                        variants={itemVariants}
-                        key={idx}
-                        className="bg-(--color-pure-white) dark:bg-(--color-graphite-dark) border border-(--color-ash) dark:border-(--color-steel) rounded-xl p-4 flex items-start justify-between gap-4 shadow-sm"
-                      >
-                        <div className="flex items-start gap-3.5">
-                          <div className="p-2.5 bg-(--color-off-white-canvas) dark:bg-(--color-abyss) rounded-lg shrink-0 text-(--color-off-black-ink) dark:text-(--color-cloud)">
-                            <Icon className="w-5 h-5" />
+                      return (
+                        <motion.div
+                          variants={itemVariants}
+                          key={idx}
+                          className="bg-(--color-pure-white) dark:bg-(--color-graphite-dark) border border-(--color-ash) dark:border-(--color-steel) rounded-xl p-4 flex items-start justify-between gap-4 shadow-sm"
+                        >
+                          <div className="flex items-start gap-3.5">
+                            <div className="p-2.5 bg-(--color-off-white-canvas) dark:bg-(--color-abyss) rounded-lg shrink-0 text-(--color-off-black-ink) dark:text-(--color-cloud)">
+                              <Icon className="w-5 h-5" />
+                            </div>
+                            <div>
+                              <h4 className="font-bold text-sm text-(--color-off-black-ink) dark:text-(--color-cloud)">
+                                {factorTitle}
+                              </h4>
+                              <p className="text-xs text-(--color-graphite) dark:text-(--color-ash-dark) mt-0.5 leading-relaxed">
+                                {factorDetail}
+                              </p>
+                            </div>
                           </div>
-                          <div>
-                            <h4 className="font-bold text-sm text-(--color-off-black-ink) dark:text-(--color-cloud)">
-                              {factorTitle}
-                            </h4>
-                            <p className="text-xs text-(--color-graphite) dark:text-(--color-ash-dark) mt-0.5 leading-relaxed">
-                              {factorDetail}
-                            </p>
-                          </div>
-                        </div>
 
-                        {factor.contribution && (
-                          <span className="shrink-0 text-xs font-bold px-2.5 py-1 rounded-full bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 border border-red-200 dark:border-red-800">
-                            +{factor.contribution}%
-                          </span>
-                        )}
-                      </motion.div>
-                    );
-                  })}
-                </motion.div>
+                          {factor.contribution && (
+                            <span className="shrink-0 text-xs font-bold px-2.5 py-1 rounded-full bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 border border-red-200 dark:border-red-800">
+                              +{factor.contribution}%
+                            </span>
+                          )}
+                        </motion.div>
+                      );
+                    })}
+                  </motion.div>
+                )}
               </div>
 
             </div>
