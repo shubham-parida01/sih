@@ -27,9 +27,21 @@ async def lifespan(app: FastAPI):
     """Startup and shutdown lifecycle events."""
     # Startup
     print("[*] Starting SIH 2026 Backend...")
-    await connect_to_mongodb()
-    await seed_admin()
-    print("[OK] Backend ready!")
+    try:
+        await connect_to_mongodb()
+        await seed_admin()
+        print("[OK] Backend ready with MongoDB connection!")
+    except Exception as db_err:
+        print("\n" + "="*70)
+        print(" [!] MONGODB ATLAS CONNECTION NOTICE")
+        print(f" Error: {db_err}")
+        print(" Cause: MongoDB Atlas rejected connection from your local IP address.")
+        print(" Fix Step:")
+        print(" 1. Go to https://cloud.mongodb.com")
+        print(" 2. Open Network Access -> Click 'Add IP Address'")
+        print(" 3. Choose 'Allow Access From Anywhere' (0.0.0.0/0) and click Confirm")
+        print("="*70 + "\n")
+
     print(f"[DOCS] API docs: http://{settings.HOST}:{settings.PORT}/docs")
 
     yield

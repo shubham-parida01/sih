@@ -8,15 +8,16 @@ from pydantic import BaseModel, Field
 
 class TransactionData(BaseModel):
     """Input transaction data for risk scoring."""
-    transaction_id: str
-    user_id: str
+    transaction_id: Optional[str] = "txn_demo"
+    user_id: Optional[str] = "user_demo"
     payee_upi: str
-    payee_name: str
+    payee_name: Optional[str] = "Recipient"
     amount: float
     device_fingerprint: Optional[str] = None
     ip_address: Optional[str] = None
     location: Optional[dict] = None
     user_registered_device: Optional[str] = None
+    telemetry: Optional[dict] = None  # On-device hardware & situational telemetry
 
 
 class UserHistory(BaseModel):

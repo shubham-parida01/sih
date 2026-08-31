@@ -50,26 +50,21 @@ async def score_transaction(transaction_data: dict, user_history: dict) -> dict:
         "user_history": user_history,
     }
 
-    # Retry logic: 2 attempts with backoff
-    for attempt in range(2):
+    # Retry logic: local ML service first, then remote production ML service fallback
+    target_urls = [settings.ML_SERVICE_URL, "https://sih-ml-service-ibak.onrender.com"]
+
+    for base_url in target_urls:
         try:
-            client = await get_http_client()
-            response = await client.post("/api/risk/score", json=payload)
-
-            if response.status_code == 200:
-                return response.json()
-
-            # Non-200 response — log and retry
-            print(f"[WARN] ML service returned {response.status_code} (attempt {attempt + 1})")
-
-        except (httpx.ConnectError, httpx.TimeoutException) as e:
-            print(f"[WARN] ML service unreachable (attempt {attempt + 1}): {e}")
-
+            async with httpx.AsyncClient(base_url=base_url, timeout=httpx.Timeout(30.0, connect=10.0)) as client:
+                response = await client.post("/api/risk/score", json=payload)
+                if response.status_code == 200:
+                    return response.json()
+                print(f"[WARN] ML service at {base_url} returned {response.status_code}")
         except Exception as e:
-            print(f"[WARN] ML service error (attempt {attempt + 1}): {e}")
+            print(f"[WARN] ML service at {base_url} unreachable: {e}")
 
-    # Fail-safe: Raise a ServiceUnavailableException to block operations with raw errors
-    print("[ERROR] ML service unreachable -- throwing ServiceUnavailableException")
+    # Fail-safe: Raise a ServiceUnavailableException if both local and remote ML endpoints fail
+    print("[ERROR] ML service unreachable on all endpoints -- throwing ServiceUnavailableException")
     raise ServiceUnavailableException(
         detail="Risk assessment service temporarily offline. Please try again."
     )

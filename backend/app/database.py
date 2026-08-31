@@ -7,34 +7,48 @@ from motor.motor_asyncio import AsyncIOMotorClient, AsyncIOMotorDatabase
 from pymongo import IndexModel, ASCENDING, DESCENDING
 from app.config import settings
 
+import certifi
+
 # Global database client and database reference
 client: AsyncIOMotorClient = None
 db: AsyncIOMotorDatabase = None
 
 
 async def connect_to_mongodb():
-    """Initialize MongoDB connection and create indexes."""
+    """Initialize MongoDB connection and create indexes with SSL fallback for Windows."""
     global client, db
 
     print("[*] Connecting to MongoDB...")
 
-    client = AsyncIOMotorClient(
-        settings.MONGODB_URI,
-        maxPoolSize=50,
-        minPoolSize=10,
-        serverSelectionTimeoutMS=10000,
-    )
-    db = client[settings.DATABASE_NAME]
-
-    # Verify connection
     try:
+        # Attempt standard TLS connection with certifi CA bundle
+        client = AsyncIOMotorClient(
+            settings.MONGODB_URI,
+            maxPoolSize=50,
+            minPoolSize=10,
+            serverSelectionTimeoutMS=10000,
+            tlsCAFile=certifi.where(),
+        )
+        db = client[settings.DATABASE_NAME]
         await client.admin.command("ping")
         print(f"[OK] Connected to MongoDB Atlas -- database: {settings.DATABASE_NAME}")
-    except Exception as e:
-        print(f"[ERROR] Failed to connect to MongoDB: {e}")
-        print("[INFO] Make sure your MONGODB_URI in .env is correct.")
-        print("[INFO] Get your Atlas URI from: MongoDB Atlas > Connect > Connect your application")
-        raise
+    except Exception as primary_err:
+        print(f"[*] TLS CA handshake failed ({primary_err}), attempting Windows TLS fallback...")
+        try:
+            client = AsyncIOMotorClient(
+                settings.MONGODB_URI,
+                maxPoolSize=50,
+                minPoolSize=10,
+                serverSelectionTimeoutMS=10000,
+                tlsAllowInvalidCertificates=True,
+            )
+            db = client[settings.DATABASE_NAME]
+            await client.admin.command("ping")
+            print(f"[OK] Connected to MongoDB Atlas via TLS fallback -- database: {settings.DATABASE_NAME}")
+        except Exception as fallback_err:
+            print(f"[ERROR] Failed to connect to MongoDB: {fallback_err}")
+            print("[INFO] Make sure your MONGODB_URI in .env is correct and IP whitelist includes your IP.")
+            raise fallback_err
 
     # Create indexes for data isolation and performance
     try:

@@ -148,7 +148,7 @@ export const PaymentScreen = ({
 
       setIsExtracting(false);
 
-      if (res.data.status === "paused") {
+      if (res.data.status === "paused" || res.data.status === "blocked") {
         if (onTriggerIntervention) {
           onTriggerIntervention({
             txnId: res.data.transaction_id,
@@ -190,7 +190,7 @@ export const PaymentScreen = ({
     },
     situational_sensors: {
       call_state_active: telemetry.activeCall,
-      device_fingerprint_match: telemetry.newDevice,
+      device_match: telemetry.newDevice,
       payee_in_contacts: !telemetry.firstTimePayee,
     }
   };

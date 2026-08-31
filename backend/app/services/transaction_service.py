@@ -224,18 +224,18 @@ async def initiate_transaction(
         "risk_level": risk_level,
         "risk_explanation": risk_explanation,
         "risk_factors": risk_factors,
+        "factors": risk_factors,
+        "recommendation": recommendation,
         "device_changed": device_changed,
         "model_type": model_type,
         "created_at": txn_doc["created_at"].isoformat(),
         "completed_at": completed_at.isoformat() if completed_at else None,
     }
 
-    # If paused, add recommendation and can_proceed flag
+    # If paused or blocked, set can_proceed flag
     if new_status == TransactionStatus.PAUSED.value:
-        response["recommendation"] = recommendation
         response["can_proceed"] = True  # User can confirm
     elif new_status == TransactionStatus.BLOCKED.value:
-        response["recommendation"] = "This transaction has been blocked due to very high risk. An admin will review it."
         response["can_proceed"] = False  # Must wait for admin
 
     return response

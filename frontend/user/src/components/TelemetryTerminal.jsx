@@ -166,8 +166,8 @@ export const TelemetryTerminal = ({
                     <tr>
                       <td className="px-4 py-3 font-medium text-gray-500 dark:text-gray-400">Device Match</td>
                       <td className="px-4 py-3">
-                        <span className={`px-2.5 py-1 rounded-full text-xs font-semibold ${liveJSON.situational_sensors.device_fingerprint_match ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 border border-green-200 dark:border-green-800" : "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400 border border-red-200 dark:border-red-800"}`}>
-                          {String(liveJSON.situational_sensors.device_fingerprint_match)}
+                        <span className={`px-2.5 py-1 rounded-full text-xs font-semibold ${(liveJSON.situational_sensors.device_match ?? liveJSON.situational_sensors.device_fingerprint_match) ? "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400 border border-red-200 dark:border-red-800" : "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 border border-green-200 dark:border-green-800"}`}>
+                          {String(liveJSON.situational_sensors.device_match ?? liveJSON.situational_sensors.device_fingerprint_match)}
                         </span>
                       </td>
                     </tr>
@@ -224,8 +224,8 @@ export const TelemetryTerminal = ({
                   </span>,
                   <br />
                   {"    "}<span className="text-cyan-900 font-medium dark:text-[#00b3dd]">"device_match"</span>:{" "}
-                  <span className={liveJSON.situational_sensors.device_fingerprint_match ? "text-fuchsia-800 dark:text-[#dd90d8]" : "text-red-700 font-semibold dark:text-[#ff4433]"}>
-                    {String(liveJSON.situational_sensors.device_fingerprint_match)}
+                  <span className={(liveJSON.situational_sensors.device_match ?? liveJSON.situational_sensors.device_fingerprint_match) ? "text-red-700 font-semibold dark:text-[#ff4433]" : "text-fuchsia-800 dark:text-[#dd90d8]"}>
+                    {String(liveJSON.situational_sensors.device_match ?? liveJSON.situational_sensors.device_fingerprint_match)}
                   </span>,
                   <br />
                   {"    "}<span className="text-cyan-900 font-medium dark:text-[#00b3dd]">"payee_in_contacts"</span>:{" "}
