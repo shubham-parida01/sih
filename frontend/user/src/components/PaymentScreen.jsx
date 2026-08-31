@@ -198,47 +198,56 @@ export const PaymentScreen = ({
   return (
     <div className="min-h-screen w-full bg-(--color-pure-white) dark:bg-(--color-obsidian) p-4 md:p-8 flex flex-col justify-between transition-colors duration-300">
       {/* Top Header Bar */}
-      <header className="flex items-center justify-between border-b border-(--color-ash)/40 dark:border-(--color-steel) pb-4 mb-6">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-full bg-(--color-electric-lime) dark:bg-(--color-iris-gleam) flex items-center justify-center font-bold text-(--color-off-black-ink) dark:text-white">
+      <header className="flex items-center justify-between border-b border-gray-200/80 dark:border-gray-800 pb-5 mb-8 backdrop-blur-md">
+        <div className="flex items-center gap-3.5">
+          <div className="w-11 h-11 rounded-2xl bg-(--color-electric-lime) dark:bg-(--color-iris-gleam) flex items-center justify-center font-black text-black text-lg shadow-[0_0_20px_rgba(190,255,80,0.3)]">
             {userProfile?.full_name ? userProfile.full_name.charAt(0) : "U"}
           </div>
           <div>
-            <h2 className="font-bold text-sm text-(--color-off-black-ink) dark:text-white">
-              {userProfile?.full_name || "RakshaPay User"}
-            </h2>
-            <p className="text-xs text-(--color-graphite) dark:text-(--color-ash-dark)">
-              {userProfile?.upi_id || "user@upi"} • ₹{userProfile?.balance ? userProfile.balance.toLocaleString() : "50,000"}
+            <div className="flex items-center gap-2">
+              <h2 className="font-extrabold text-base text-gray-900 dark:text-white">
+                {userProfile?.full_name || "RakshaPay User"}
+              </h2>
+              <span className="inline-flex items-center gap-1 text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+                ● Shield Active
+              </span>
+            </div>
+            <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 mt-0.5">
+              {userProfile?.upi_id || "user@upi"} • <span className="text-gray-900 dark:text-white font-extrabold">₹{userProfile?.balance ? userProfile.balance.toLocaleString() : "50,000"}</span>
             </p>
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-3">
           <button
+            type="button"
             onClick={() => {
               clearSession();
               if (onLogout) onLogout();
             }}
-            className="flex items-center gap-1 text-xs font-semibold px-3 py-1.5 rounded-full border border-(--color-ash) dark:border-(--color-steel) hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+            className="flex items-center gap-1.5 text-xs font-extrabold px-4 py-2 rounded-full border border-gray-300 dark:border-gray-700 bg-white/50 dark:bg-gray-900/50 hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-700 dark:text-gray-300 transition-all shadow-sm cursor-pointer"
           >
             <LogOut size={14} /> Sign out
           </button>
         </div>
       </header>
 
-      <div className="flex-1 grid grid-cols-1 lg:grid-cols-2 gap-8 max-w-6xl mx-auto w-full items-start">
+      <div className="flex-1 grid grid-cols-1 lg:grid-cols-2 gap-8 max-w-6xl mx-auto w-full items-start relative z-10">
         {/* Left: Payment Form Card */}
-        <div className="bg-(--color-off-white-canvas) dark:bg-(--color-graphite-dark) rounded-3xl p-6 sm:p-8 border border-(--color-ash)/40 dark:border-(--color-steel) shadow-sm">
+        <div className="glass-panel dark:bg-gray-900/80 rounded-3xl p-6 sm:p-8 border border-gray-200 dark:border-gray-800 shadow-2xl relative overflow-hidden">
           <div className="flex items-center justify-between mb-6">
-            <span className="text-xs font-bold uppercase tracking-widest text-(--color-electric-lime) dark:text-(--color-iris-gleam) bg-black/10 dark:bg-white/10 px-3 py-1 rounded-full">
+            <span className="text-xs font-extrabold uppercase tracking-widest text-lime-700 dark:text-lime-400 bg-lime-500/10 dark:bg-lime-400/10 px-3.5 py-1.5 rounded-full border border-lime-500/20">
               UPI Safe Pay
             </span>
-            <ShieldCheck className="w-5 h-5 text-emerald-500" />
+            <div className="flex items-center gap-1.5 text-xs font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-2.5 py-1 rounded-full border border-emerald-500/20">
+              <ShieldCheck className="w-4 h-4 fill-current" />
+              <span>Coercion Protected</span>
+            </div>
           </div>
 
           <form onSubmit={handlePayment} className="space-y-5">
             <div>
-              <label className="block text-xs font-semibold text-(--color-graphite) dark:text-(--color-ash-dark) mb-1">
+              <label className="block text-xs font-bold uppercase tracking-wider text-gray-700 dark:text-gray-300 mb-1.5">
                 Payee Name
               </label>
               <input
@@ -246,12 +255,12 @@ export const PaymentScreen = ({
                 value={payeeName}
                 onChange={(e) => setPayeeName(e.target.value)}
                 placeholder="Payee Name"
-                className="w-full bg-(--color-pure-white) dark:bg-(--color-abyss) border border-(--color-ash) dark:border-(--color-steel) rounded-xl px-4 py-2.5 text-sm font-semibold focus:outline-none"
+                className="w-full bg-white dark:bg-gray-950 border border-gray-200 dark:border-gray-800 rounded-xl px-4 py-3 text-sm font-bold text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-lime-400/40 focus:border-lime-400 transition-all"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-(--color-graphite) dark:text-(--color-ash-dark) mb-1">
+              <label className="block text-xs font-bold uppercase tracking-wider text-gray-700 dark:text-gray-300 mb-1.5">
                 Recipient UPI ID
               </label>
               <input
@@ -259,21 +268,21 @@ export const PaymentScreen = ({
                 value={upiId}
                 onChange={(e) => setUpiId(e.target.value)}
                 placeholder="example@upi"
-                className="w-full bg-(--color-pure-white) dark:bg-(--color-abyss) border border-(--color-ash) dark:border-(--color-steel) rounded-xl px-4 py-2.5 text-sm font-semibold focus:outline-none"
+                className="w-full bg-white dark:bg-gray-950 border border-gray-200 dark:border-gray-800 rounded-xl px-4 py-3 text-sm font-bold text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-lime-400/40 focus:border-lime-400 transition-all font-mono"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-(--color-graphite) dark:text-(--color-ash-dark) mb-1">
+              <label className="block text-xs font-bold uppercase tracking-wider text-gray-700 dark:text-gray-300 mb-1.5">
                 Amount (INR)
               </label>
               <div className="relative flex items-center">
-                <span className="absolute left-4 font-bold text-lg text-(--color-graphite)">₹</span>
+                <span className="absolute left-4 font-black text-2xl text-gray-400">₹</span>
                 <input
                   type="text"
                   value={amount}
                   onChange={handleChange}
-                  className="w-full bg-(--color-pure-white) dark:bg-(--color-abyss) border border-(--color-ash) dark:border-(--color-steel) rounded-xl pl-8 pr-4 py-3 text-2xl font-bold focus:outline-none"
+                  className="w-full bg-white dark:bg-gray-950 border border-gray-200 dark:border-gray-800 rounded-xl pl-9 pr-4 py-3.5 text-3xl font-black text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-lime-400/40 focus:border-lime-400 transition-all tracking-tight"
                 />
               </div>
             </div>
@@ -281,10 +290,13 @@ export const PaymentScreen = ({
             <button
               type="submit"
               disabled={isExtracting}
-              className="w-full bg-(--color-electric-lime) dark:bg-(--color-iris-gleam) text-(--color-off-black-ink) dark:text-white font-bold py-3.5 rounded-full hover:opacity-90 active:scale-[0.99] transition-all flex items-center justify-center gap-2 shadow-md cursor-pointer disabled:opacity-50"
+              className="w-full bg-(--color-electric-lime) hover:bg-lime-400 text-black font-black text-base py-4 rounded-xl hover:shadow-[0_0_25px_rgba(190,255,80,0.4)] active:scale-[0.99] transition-all flex items-center justify-center gap-2 shadow-lg cursor-pointer disabled:opacity-50 mt-2"
             >
               {isExtracting ? (
-                <span>Evaluating Signals...</span>
+                <span className="flex items-center gap-2">
+                  <span className="w-4 h-4 border-2 border-black border-t-transparent rounded-full animate-spin" />
+                  Evaluating Signals...
+                </span>
               ) : (
                 <>
                   <Send size={18} />

@@ -6,26 +6,25 @@
     /* Colors (Consumer Theme) */
     --color-electric-lime: #beff50;
     --color-off-black-ink: #14140f;
-    --color-off-white-canvas: #f5f5eb;
+    --color-off-white-canvas: #fafaf5;
     --color-pure-white: #ffffff;
-    --color-ash: #d2d2c8;
+    --color-ash: #e2e2d8;
     --color-graphite: #6e6e64;
     --color-alert-red: #ff4433; /* A warm, modern alert red */
 
     /* Colors (Analyst Dark Theme) */
-    --color-obsidian: #0f1011;
-    --color-abyss: #090a0b;
-    --color-graphite-dark: #2e2e2e;
-    --color-steel: #3f4041;
-    /* --color-iris-gleam: #847dff; */
+    --color-obsidian: #0b0c0e;
+    --color-abyss: #060708;
+    --color-graphite-dark: #18191c;
+    --color-steel: #2a2c30;
     --color-iris-gleam: #beff50;
 
     --color-ash-dark: #9f9fa0;
     --color-cloud: #f5f5f7;
 
     /* Radii */
-    --radius-md: 4px;
-    --radius-lg: 8px;
+    --radius-md: 8px;
+    --radius-lg: 12px;
     --radius-3xl: 28px;
     --radius-full: 9999px;
 
@@ -39,13 +38,67 @@
   }
   
   body {
-    font-family: 'OTSono', sans-serif;
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
     background-color: var(--color-pure-white);
     color: var(--color-off-black-ink);
+    overflow-x: hidden;
   }
 
   .dark body {
     background-color: var(--color-obsidian);
     color: var(--color-cloud);
   }
+}
+
+/* Custom Scrollbars */
+.terminal-scrollbar::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+.terminal-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+.terminal-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(160, 160, 160, 0.3);
+  border-radius: 9999px;
+}
+.terminal-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(160, 160, 160, 0.5);
+}
+
+/* Glassmorphism & Ambient Glow Utilities */
+.glass-panel {
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+.dark .glass-panel {
+  background: rgba(18, 20, 24, 0.85);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.glass-card {
+  background: rgba(255, 255, 255, 0.6);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+.dark .glass-card {
+  background: rgba(24, 26, 32, 0.6);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+}
+
+/* Subtle Shimmer & Pulse Animation */
+@keyframes ambientGlow {
+  0%, 100% { opacity: 0.4; transform: scale(1); }
+  50% { opacity: 0.7; transform: scale(1.05); }
+}
+
+.animate-ambient-glow {
+  animation: ambientGlow 8s ease-in-out infinite;
 }

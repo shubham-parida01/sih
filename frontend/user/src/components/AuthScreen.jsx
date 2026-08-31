@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Eye, EyeOff, XCircle } from 'lucide-react';
+import { Eye, EyeOff, ShieldCheck, Lock, Mail, User, Sparkles } from 'lucide-react';
 import toast from 'react-hot-toast';
 import ThemeToggle from './ThemeToggle';
 import { auth, saveSession } from '../services/api';
@@ -68,22 +68,29 @@ export const AuthScreen = ({ onLogin, isDark: externalIsDark, setIsDark: externa
   };
 
   return (
-    <div className="min-h-screen w-full flex flex-col md:flex-row bg-(--color-pure-white) dark:bg-(--color-obsidian) font-sans select-none transition-colors duration-300">
+    <div className="min-h-screen w-full flex flex-col md:flex-row bg-(--color-pure-white) dark:bg-(--color-obsidian) font-sans select-none transition-colors duration-300 relative overflow-hidden">
       {/* Left Panel (Editorial Accent) */}
-      <div className="w-full md:w-2/5 bg-(--color-electric-lime) dark:bg-(--color-iris-gleam) p-8 md:p-14 flex flex-col justify-between shrink-0 min-h-80 md:min-h-screen transition-colors duration-300">
+      <div className="w-full md:w-2/5 bg-gradient-to-br from-lime-300 via-lime-400 to-emerald-400 dark:from-lime-400 dark:via-emerald-500 dark:to-teal-600 p-8 md:p-14 flex flex-col justify-between shrink-0 min-h-80 md:min-h-screen transition-colors duration-300 relative overflow-hidden">
+        {/* Glow Orb Effect */}
+        <div className="absolute top-[-20%] left-[-20%] w-[350px] h-[350px] bg-white/20 rounded-full blur-3xl pointer-events-none" />
+        
         {/* Top Left: Brand Name */}
-        <div>
-          <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-(--color-off-black-ink) dark:text-white">
+        <div className="relative z-10 flex items-center gap-3">
+          <div className="p-2.5 rounded-2xl bg-black/10 dark:bg-black/20 border border-black/10 backdrop-blur-md">
+            <ShieldCheck className="w-6 h-6 text-black dark:text-white" />
+          </div>
+          <h1 className="text-2xl md:text-3xl font-black tracking-tight text-black dark:text-white">
             RakshaPay
           </h1>
         </div>
 
         {/* Bottom Left: Tagline & Heading */}
-        <div className="mt-12 md:mt-0">
-          <p className="text-(length:--text-caption) uppercase font-bold tracking-widest text-(--color-off-black-ink) dark:text-white/90 mb-3 opacity-90">
-            PAYMENT ELEVATED
-          </p>
-          <h2 className="text-4xl sm:text-5xl md:text-5xl lg:text-6xl font-bold text-(--color-off-black-ink) dark:text-white leading-[1.05] tracking-tight max-w-sm">
+        <div className="mt-12 md:mt-0 relative z-10">
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-black/10 dark:bg-black/20 text-black dark:text-white text-[11px] font-extrabold uppercase tracking-widest mb-4">
+            <Sparkles className="w-3.5 h-3.5" />
+            <span>PAYMENT ELEVATED</span>
+          </div>
+          <h2 className="text-4xl sm:text-5xl md:text-5xl lg:text-6xl font-black text-black dark:text-white leading-[1.05] tracking-tight max-w-sm">
             Make your payment safe
           </h2>
         </div>
@@ -91,13 +98,16 @@ export const AuthScreen = ({ onLogin, isDark: externalIsDark, setIsDark: externa
 
       {/* Right Panel (Workspace) */}
       <div className="w-full md:w-3/5 bg-(--color-pure-white) dark:bg-(--color-obsidian) relative flex items-center justify-center p-6 sm:p-10 md:p-12 min-h-screen transition-colors duration-300">
+        {/* Ambient Glow Background */}
+        <div className="absolute top-1/4 right-1/4 w-96 h-96 bg-lime-400/10 dark:bg-lime-400/5 rounded-full blur-3xl pointer-events-none" />
+
         {/* Theme Toggle (Top Right) */}
-        <div className="absolute top-6 right-6 md:top-8 md:right-8">
+        <div className="absolute top-6 right-6 md:top-8 md:right-8 z-20">
           <ThemeToggle isDark={isDark} setIsDark={toggleTheme} />
         </div>
 
         {/* Auth Card */}
-        <div className="w-full max-w-md bg-(--color-off-white-canvas) dark:bg-(--color-graphite-dark) rounded-3xl p-8 sm:p-10 md:p-12 shadow-sm border border-(--color-ash)/40 dark:border-(--color-steel) my-auto transition-colors duration-300">
+        <div className="w-full max-w-md glass-panel dark:bg-gray-900/80 rounded-3xl p-8 sm:p-10 md:p-12 shadow-2xl border border-gray-200 dark:border-gray-800 my-auto transition-colors duration-300 relative z-10">
           <AnimatePresence mode="wait">
             <motion.div
               key={isLogin ? 'login' : 'signup'}
@@ -108,33 +118,36 @@ export const AuthScreen = ({ onLogin, isDark: externalIsDark, setIsDark: externa
               className="w-full"
             >
               {/* Header */}
-              <div className="mb-6">
-                <h2 className="text-(length:--text-heading) font-semibold text-(--color-off-black-ink) dark:text-(--color-cloud) tracking-tight">
+              <div className="mb-8">
+                <h2 className="text-3xl font-extrabold text-gray-900 dark:text-white tracking-tight">
                   {isLogin ? 'Welcome back' : 'Create Account'}
                 </h2>
-                <p className="text-(length:--text-body-sm) text-(--color-graphite) dark:text-(--color-ash-dark) mt-1">
-                  {isLogin ? 'Sign in to your account' : 'Sign up for a secure user account'}
+                <p className="text-sm font-medium text-gray-500 dark:text-gray-400 mt-1">
+                  {isLogin ? 'Sign in to access your secure portal' : 'Sign up for a secure user account'}
                 </p>
               </div>
 
               {/* Form */}
-              <form onSubmit={handleSubmit} className="space-y-4">
+              <form onSubmit={handleSubmit} className="space-y-5">
                 {!isLogin && (
                   <div>
                     <label 
                       htmlFor="fullName" 
-                      className="block text-(length:--text-caption) font-semibold text-(--color-off-black-ink) dark:text-(--color-cloud) mb-1.5"
+                      className="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1.5 uppercase tracking-wider"
                     >
                       Full Name
                     </label>
-                    <input
-                      id="fullName"
-                      type="text"
-                      value={fullName}
-                      onChange={(e) => setFullName(e.target.value)}
-                      placeholder="Rohit Kumar"
-                      className="w-full bg-(--color-pure-white) dark:bg-(--color-abyss) border border-(--color-ash) dark:border-(--color-steel) rounded-md px-3.5 py-2.5 text-(length:--text-body-sm) text-(--color-off-black-ink) dark:text-(--color-cloud) placeholder-(--color-graphite)/60 dark:placeholder-(--color-ash-dark)/60 focus:outline-none focus:border-(--color-off-black-ink) dark:focus:border-(--color-iris-gleam) transition-colors"
-                    />
+                    <div className="relative flex items-center">
+                      <User className="absolute left-3.5 w-4 h-4 text-gray-400" />
+                      <input
+                        id="fullName"
+                        type="text"
+                        value={fullName}
+                        onChange={(e) => setFullName(e.target.value)}
+                        placeholder="Rohit Kumar"
+                        className="w-full bg-white dark:bg-gray-950 border border-gray-200 dark:border-gray-800 rounded-xl pl-10 pr-4 py-3 text-sm text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-lime-400/40 focus:border-lime-400 transition-all font-medium"
+                      />
+                    </div>
                   </div>
                 )}
 
@@ -142,41 +155,45 @@ export const AuthScreen = ({ onLogin, isDark: externalIsDark, setIsDark: externa
                 <div>
                   <label 
                     htmlFor="email" 
-                    className="block text-(length:--text-caption) font-semibold text-(--color-off-black-ink) dark:text-(--color-cloud) mb-1.5"
+                    className="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1.5 uppercase tracking-wider"
                   >
                     Email address
                   </label>
-                  <input
-                    id="email"
-                    type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    placeholder="name@domain.com"
-                    className="w-full bg-(--color-pure-white) dark:bg-(--color-abyss) border border-(--color-ash) dark:border-(--color-steel) rounded-md px-3.5 py-2.5 text-(length:--text-body-sm) text-(--color-off-black-ink) dark:text-(--color-cloud) placeholder-(--color-graphite)/60 dark:placeholder-(--color-ash-dark)/60 focus:outline-none focus:border-(--color-off-black-ink) dark:focus:border-(--color-iris-gleam) transition-colors"
-                  />
+                  <div className="relative flex items-center">
+                    <Mail className="absolute left-3.5 w-4 h-4 text-gray-400" />
+                    <input
+                      id="email"
+                      type="email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      placeholder="name@domain.com"
+                      className="w-full bg-white dark:bg-gray-950 border border-gray-200 dark:border-gray-800 rounded-xl pl-10 pr-4 py-3 text-sm text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-lime-400/40 focus:border-lime-400 transition-all font-medium"
+                    />
+                  </div>
                 </div>
 
                 {/* Password Input */}
                 <div>
                   <label 
                     htmlFor="password" 
-                    className="block text-(length:--text-caption) font-semibold text-(--color-off-black-ink) dark:text-(--color-cloud) mb-1.5"
+                    className="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1.5 uppercase tracking-wider"
                   >
                     Password
                   </label>
                   <div className="relative flex items-center">
+                    <Lock className="absolute left-3.5 w-4 h-4 text-gray-400" />
                     <input
                       id="password"
                       type={showPassword ? 'text' : 'password'}
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
-                      placeholder="............"
-                      className="w-full bg-(--color-pure-white) dark:bg-(--color-abyss) border border-(--color-ash) dark:border-(--color-steel) rounded-md pl-3.5 pr-10 py-2.5 text-(length:--text-body-sm) text-(--color-off-black-ink) dark:text-(--color-cloud) placeholder-(--color-graphite)/60 dark:placeholder-(--color-ash-dark)/60 focus:outline-none focus:border-(--color-off-black-ink) dark:focus:border-(--color-iris-gleam) transition-colors"
+                      placeholder="••••••••••••"
+                      className="w-full bg-white dark:bg-gray-950 border border-gray-200 dark:border-gray-800 rounded-xl pl-10 pr-10 py-3 text-sm text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-lime-400/40 focus:border-lime-400 transition-all font-medium"
                     />
                     <button
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-(--color-graphite) dark:text-(--color-ash-dark) hover:text-(--color-off-black-ink) dark:hover:text-white transition-colors cursor-pointer p-1"
+                      className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-700 dark:hover:text-white transition-colors cursor-pointer p-1"
                       aria-label={showPassword ? "Hide password" : "Show password"}
                     >
                       {showPassword ? (
@@ -192,21 +209,21 @@ export const AuthScreen = ({ onLogin, isDark: externalIsDark, setIsDark: externa
                 <button
                   type="submit"
                   disabled={loading}
-                  className="w-full bg-(--color-electric-lime) dark:bg-(--color-iris-gleam) text-(--color-off-black-ink) dark:text-white font-bold text-(length:--text-body-sm) py-3 rounded-(--radius-full) hover:opacity-90 active:scale-[0.99] transition-all cursor-pointer shadow-sm mt-6 disabled:opacity-50"
+                  className="w-full bg-(--color-electric-lime) hover:bg-lime-400 text-black font-extrabold text-sm py-3.5 rounded-xl hover:shadow-[0_0_20px_rgba(190,255,80,0.4)] active:scale-[0.99] transition-all cursor-pointer shadow-md mt-6 disabled:opacity-50 flex items-center justify-center gap-2"
                 >
-                  {loading ? 'Processing...' : isLogin ? 'Sign in' : 'Sign up'}
+                  {loading ? 'Processing...' : isLogin ? 'Sign in' : 'Create Account'}
                 </button>
               </form>
 
               {/* Footer Toggle */}
-              <div className="text-center mt-6 text-(length:--text-caption) text-(--color-graphite) dark:text-(--color-ash-dark)">
+              <div className="text-center mt-6 text-xs text-gray-500 dark:text-gray-400 font-medium">
                 <span>
                   {isLogin ? "Don't have an account? " : "Already have an account? "}
                 </span>
                 <button
                   type="button"
                   onClick={() => setIsLogin(!isLogin)}
-                  className="font-bold underline text-(--color-off-black-ink) dark:text-(--color-cloud) cursor-pointer hover:opacity-80 transition-opacity ml-0.5"
+                  className="font-extrabold text-gray-900 dark:text-white hover:text-lime-600 dark:hover:text-lime-400 cursor-pointer transition-colors ml-1"
                 >
                   {isLogin ? 'Sign up' : 'Sign in'}
                 </button>
