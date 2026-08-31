@@ -266,9 +266,9 @@ def _score_rule_based(
     if active_call:
         contribution = 35.0
         factors.append({
-            "factor": "Active call in progress (Coercion risk)",
+            "factor": "Call State Active (Sensor Override)",
             "contribution": contribution,
-            "detail": "User is currently on an active phone call during payment initiation (Vishing indicator)",
+            "detail": "Call State Active was changed from False to True (Active phone call detected during payment — Coercion/Vishing risk)",
         })
         total_score += contribution
 
@@ -276,21 +276,21 @@ def _score_rule_based(
     if new_device_toggle or (not has_telemetry and transaction.get("device_fingerprint") and user_history.get("registered_device") and transaction.get("device_fingerprint") != user_history.get("registered_device")):
         contribution = 25.0
         factors.append({
-            "factor": "Unrecognized device fingerprint",
+            "factor": "Unrecognized / New Device (Sensor Override)",
             "contribution": contribution,
-            "detail": "Transaction initiated from an unrecognized device",
+            "detail": "Device status was changed to New Device (Initiated from an unrecognized device hardware state)",
         })
         total_score += contribution
 
-    # Factor: First Time Payee
+    # Factor: First Time Payee / Payee Not in Contacts
     payee_upi = transaction.get("payee_upi", "")
     known_payees = set(user_history.get("known_payees", []))
     if first_payee_toggle or (not has_telemetry and payee_upi and payee_upi not in known_payees):
         contribution = 25.0 if amount > 5000 else 15.0
         factors.append({
-            "factor": "First-time payee",
+            "factor": "Payee Not in Contacts (Sensor Override)",
             "contribution": contribution,
-            "detail": f"First payment to {payee_upi}",
+            "detail": f"Payee in Contacts status was changed to False (First-time payment to unverified recipient {payee_upi})",
         })
         total_score += contribution
 
@@ -367,42 +367,24 @@ def _explain_prediction(
 
     if telemetry.get("activeCall") or telemetry.get("call_state_active"):
         matched_factors.append({
-            "factor": "Active call in progress (Coercion risk)",
+            "factor": "Call State Active (Sensor Override)",
             "base_weight": 35.0,
-            "detail": "Active call detected during payment (Vishing indicator)"
+            "detail": "Call State Active was changed from False to True (Active call detected during payment)"
         })
     if telemetry.get("newDevice") or (telemetry.get("device_fingerprint_match") is True) or (not has_telemetry and transaction.get("device_fingerprint") != user_history.get("registered_device")):
         matched_factors.append({
-            "factor": "Unrecognized device fingerprint",
+            "factor": "Unrecognized / New Device (Sensor Override)",
             "base_weight": 25.0,
-            "detail": "Transaction from an unrecognized device"
+            "detail": "Device status was changed to New Device"
         })
     if telemetry.get("firstTimePayee") or (telemetry.get("payee_in_contacts") is False) or (not has_telemetry and transaction.get("payee_upi") not in user_history.get("known_payees", [])):
         matched_factors.append({
-            "factor": "First-time payee",
+            "factor": "Payee Not in Contacts (Sensor Override)",
             "base_weight": 20.0,
-            "detail": f"First payment to {transaction.get('payee_upi', '')}"
+            "detail": f"Payee in Contacts status was changed to False (First payment to {transaction.get('payee_upi', '')})"
         })
     
     payee_upi = transaction.get("payee_upi", "")
-    known_payees = set(user_history.get("known_payees", []))
-    if payee_upi and payee_upi not in known_payees:
-        weight = WEIGHTS["high_value_new_payee"] if amount > 5000 else WEIGHTS["new_payee"]
-        matched_factors.append({
-            "factor": "New payee",
-            "base_weight": weight,
-            "detail": f"First transaction to {payee_upi}"
-        })
-        
-    current_device = transaction.get("device_fingerprint")
-    registered_device = transaction.get("user_registered_device") or user_history.get("registered_device")
-    if current_device and registered_device and current_device != registered_device:
-        matched_factors.append({
-            "factor": "Device change detected",
-            "base_weight": WEIGHTS["device_change"],
-            "detail": "Transaction from an unrecognized device"
-        })
-        
     current_hour = datetime.now(timezone.utc).hour
     ist_hour = (current_hour + 5.5) % 24
     if ist_hour >= 23 or ist_hour < 6:
@@ -449,27 +431,33 @@ def _generate_explanation(
     if not factors:
         return "This transaction appears to be within your normal payment patterns. No risk factors detected."
 
-    factor_names = [f["factor"].lower() for f in factors]
+    sensor_overrides = [f["factor"] for f in factors if "Sensor Override" in f.get("factor", "")]
+    other_factors = [f["factor"] for f in factors if "Sensor Override" not in f.get("factor", "")]
+
+    reasons = []
+    if sensor_overrides:
+        reasons.append(f"Situational sensor changes detected ({', '.join(sensor_overrides)})")
+    if other_factors:
+        reasons.append(f"Risk indicators ({', '.join(other_factors)})")
+
+    reason_str = " & ".join(reasons)
 
     if risk_level == "low":
-        return f"This transaction of ₹{amount:,.0f} to {payee_upi} appears safe. Minor factors noted: {', '.join(factor_names)}."
+        return f"Payment of ₹{amount:,.0f} to {payee_upi} completed safely. Minor notes: {reason_str}."
     elif risk_level == "medium":
         return (
-            f"This transaction was flagged for review. "
-            f"The payment of ₹{amount:,.0f} to {payee_upi} triggered: "
-            f"{', '.join(factor_names)}. Please verify before proceeding."
+            f"Payment Paused: The payment of ₹{amount:,.0f} to {payee_upi} was intercepted because "
+            f"situational sensor defaults were changed during payment initiation ({reason_str}). Please verify before proceeding."
         )
     elif risk_level == "high":
         return (
-            f"⚠️ HIGH RISK: This transaction of ₹{amount:,.0f} to {payee_upi} "
-            f"has been flagged due to: {', '.join(factor_names)}. "
-            f"We strongly recommend you verify this payment."
+            f"⚠️ HIGH RISK INTERCEPT: This transaction of ₹{amount:,.0f} to {payee_upi} "
+            f"was paused due to situational sensor deviations from default safe states ({reason_str})."
         )
     else:  # critical
         return (
-            f"🚨 CRITICAL RISK: This transaction of ₹{amount:,.0f} to {payee_upi} "
-            f"has been blocked for security review. Multiple high-risk indicators detected: "
-            f"{', '.join(factor_names)}. An administrator will review this transaction."
+            f"🚨 CRITICAL RISK BLOCKED: This transaction of ₹{amount:,.0f} to {payee_upi} "
+            f"was blocked for security review. Multiple sensor overrides detected: {reason_str}."
         )
 
 
