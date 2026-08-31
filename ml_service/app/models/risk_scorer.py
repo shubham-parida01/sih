@@ -338,6 +338,39 @@ def _score_rule_based(
         })
         total_score += contribution
 
+    # ─── Telemetry Vector Checks (from On-Device Sensor Toggles) ───
+    telemetry = transaction.get("telemetry") or {}
+    active_call = telemetry.get("activeCall") or telemetry.get("call_state_active") or False
+    new_device_toggle = telemetry.get("newDevice") or (telemetry.get("device_fingerprint_match") is False) or False
+    first_payee_toggle = telemetry.get("firstTimePayee") or (telemetry.get("payee_in_contacts") is False) or False
+
+    if active_call:
+        contribution = 35.0
+        factors.append({
+            "factor": "Active call in progress (Coercion risk)",
+            "contribution": contribution,
+            "detail": "User is currently on an active phone call during payment initiation (Vishing indicator)",
+        })
+        total_score += contribution
+
+    if new_device_toggle and not any("device" in f["factor"].lower() for f in factors):
+        contribution = 25.0
+        factors.append({
+            "factor": "Unrecognized device fingerprint",
+            "contribution": contribution,
+            "detail": "Transaction initiated from an unrecognized device",
+        })
+        total_score += contribution
+
+    if first_payee_toggle and not any("payee" in f["factor"].lower() for f in factors):
+        contribution = 25.0 if amount > 5000 else 15.0
+        factors.append({
+            "factor": "First-time payee",
+            "contribution": contribution,
+            "detail": f"First payment to {payee_upi}",
+        })
+        total_score += contribution
+
     # ─── Factor 6: New Account ───
     account_age = user_history.get("account_age_days", 0)
 
@@ -393,6 +426,26 @@ def _explain_prediction(
             "factor": "Unusually large amount",
             "base_weight": WEIGHTS["large_amount"],
             "detail": f"₹{amount:,.0f} is {round(amount/avg_amount, 1)}x your average"
+        })
+
+    telemetry = transaction.get("telemetry") or {}
+    if telemetry.get("activeCall") or telemetry.get("call_state_active"):
+        matched_factors.append({
+            "factor": "Active call in progress (Coercion risk)",
+            "base_weight": 35.0,
+            "detail": "Active call detected during payment (Vishing indicator)"
+        })
+    if telemetry.get("newDevice") or (telemetry.get("device_fingerprint_match") is False):
+        matched_factors.append({
+            "factor": "Unrecognized device fingerprint",
+            "base_weight": 25.0,
+            "detail": "Transaction from an unrecognized device"
+        })
+    if telemetry.get("firstTimePayee") or (telemetry.get("payee_in_contacts") is False):
+        matched_factors.append({
+            "factor": "First-time payee",
+            "base_weight": 20.0,
+            "detail": f"First payment to {transaction.get('payee_upi', '')}"
         })
     
     payee_upi = transaction.get("payee_upi", "")

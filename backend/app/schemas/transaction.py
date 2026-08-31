@@ -10,10 +10,11 @@ class InitiateTransactionRequest(BaseModel):
     """Schema for initiating a payment (Pay Someone page)."""
     payee_upi: str = Field(..., pattern=r"^[\w.-]+@[\w]+$")
     payee_name: str = Field(..., min_length=1, max_length=100)
-    amount: float = Field(..., gt=0, le=500000)  # Max 5 lakh per txn
+    amount: float = Field(..., gt=0, le=100000)  # Max 1 lakh per UPI txn
     device_fingerprint: Optional[str] = None
     location: Optional[dict] = None  # { lat: float, lon: float }
     note: Optional[str] = Field(None, max_length=255)
+    telemetry: Optional[dict] = None  # On-device hardware & situational telemetry
 
 
 class TransactionResponse(BaseModel):

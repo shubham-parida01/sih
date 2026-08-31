@@ -46,6 +46,7 @@ async def initiate_payment(
         device_fingerprint=request_body.device_fingerprint,
         ip_address=ip_address,
         location=request_body.location,
+        telemetry=request_body.telemetry,
     )
 
     return {"success": True, "data": result}

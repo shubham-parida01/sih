@@ -41,12 +41,23 @@ export const PaymentScreen = ({
     async function loadProfile() {
       try {
         const res = await auth.me();
-        setUserProfile(res.data);
+        if (res && res.data) {
+          setUserProfile(res.data);
+        }
       } catch (err) {
         console.warn("Could not fetch active profile:", err);
-        const session = getSession();
-        if (session.name) {
-          setUserProfile({ full_name: session.name, upi_id: "user@upi", balance: 50000.0 });
+        if (err.status === 401 || err.status === 403) {
+          clearSession();
+          if (onLogout) onLogout();
+        } else {
+          const session = getSession();
+          if (session.name) {
+            setUserProfile({ 
+              full_name: session.name, 
+              upi_id: `${session.name.toLowerCase().replace(/\s+/g, '')}@upi`, 
+              balance: 50000.0 
+            });
+          }
         }
       }
     }
@@ -59,7 +70,12 @@ export const PaymentScreen = ({
       setAmount(0);
     } else {
       const numericValue = Number(rawValue);
-      setAmount(Math.min(numericValue, 1000000));
+      if (numericValue > 100000) {
+        toast.error("Maximum UPI transfer limit is ₹1,00,000 per transaction");
+        setAmount(100000);
+      } else {
+        setAmount(numericValue);
+      }
     }
   };
 

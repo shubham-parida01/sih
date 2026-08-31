@@ -31,6 +31,10 @@ RISK_THRESHOLD_HIGH = 80     # 60 ≤ score < 80 → pause + warn strongly
 # score ≥ 80 → CRITICAL → block + admin review
 
 
+MAX_SINGLE_TXN_LIMIT = 100000.0  # ₹1,00,000 per txn
+MAX_DAILY_TXN_LIMIT = 100000.0   # ₹1,00,000 per 24h
+
+
 async def initiate_transaction(
     user_id: str,
     payee_upi: str,
@@ -39,28 +43,45 @@ async def initiate_transaction(
     device_fingerprint: Optional[str] = None,
     ip_address: Optional[str] = None,
     location: Optional[dict] = None,
+    telemetry: Optional[dict] = None,
 ) -> dict:
     """
     Initiate a payment transaction and run it through risk scoring.
-
-    Flow (from workflow diagram):
-    1. Create transaction record (status: initiated)
-    2. Build features from raw txn + account context
-    3. Score via ML service (ONNX model)
-    4. Based on risk_score threshold:
-       - LOW → auto-approve → Transaction Complete
-       - MEDIUM → pause for review → Transaction Paused
-       - HIGH/CRITICAL → block → Risk Alert Service → Admin webhook
     """
     db = get_database()
 
-    # Validate user exists and has sufficient balance
+    # 1. Enforce per-transaction limit (₹1,00,000 max)
+    if amount > MAX_SINGLE_TXN_LIMIT:
+        raise BadRequestException("Single transaction limit exceeded. Maximum allowed per transfer is ₹1,00,000 as per UPI guidelines.")
+
+    # 2. Validate user exists and has sufficient balance
     user = await db.users.find_one({"_id": ObjectId(user_id)})
     if not user:
         raise NotFoundException("User")
 
-    if user.get("balance", 0) < amount:
-        raise BadRequestException("Insufficient balance")
+    current_balance = user.get("balance", 0.0)
+    if current_balance < amount:
+        raise BadRequestException(f"Insufficient balance. Your current account balance is ₹{current_balance:,.2f}")
+
+    # 3. Check cumulative daily spending in last 24 hours
+    now = datetime.now(timezone.utc)
+    from datetime import timedelta
+    one_day_ago = now - timedelta(days=1)
+    pipeline = [
+        {"$match": {
+            "user_id": user_id,
+            "status": {"$in": [TransactionStatus.COMPLETED.value, TransactionStatus.PAUSED.value]},
+            "created_at": {"$gte": one_day_ago}
+        }},
+        {"$group": {"_id": None, "total_spent": {"$sum": "$amount"}}}
+    ]
+    spent_today = 0.0
+    async for doc in db.transactions.aggregate(pipeline):
+        spent_today = doc.get("total_spent", 0.0)
+
+    if spent_today + amount > MAX_DAILY_TXN_LIMIT:
+        remaining = max(0.0, MAX_DAILY_TXN_LIMIT - spent_today)
+        raise BadRequestException(f"Daily UPI transfer limit of ₹1,00,000 reached. Remaining limit for today: ₹{remaining:,.2f}")
 
     # Step 1: Create transaction record
     txn_doc = create_transaction_document(
@@ -94,6 +115,7 @@ async def initiate_transaction(
         "ip_address": ip_address,
         "location": location,
         "user_registered_device": user.get("device_fingerprint"),
+        "telemetry": telemetry or {},
     }
 
     # Step 4: Score transaction via ML microservice
