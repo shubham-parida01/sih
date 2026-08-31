@@ -15,6 +15,7 @@ export const TelemetryTerminal = ({
   toggleTelemetry,
   liveJSON,
 }) => {
+  const [showTable, setShowTable] = useState(true);
   const currentRiskScore = (telemetry?.activeCall ? 35 : 0) + (telemetry?.newDevice ? 25 : 0) + (telemetry?.firstTimePayee ? 20 : 0);
   const getRiskBadge = () => {
     if (currentRiskScore === 0) {
