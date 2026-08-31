@@ -240,10 +240,10 @@ def _score_rule_based(
     factors: List[Dict[str, Any]] = []
     total_score = 0.0
 
-    # ─── Factor 1: Large Amount ───
     avg_amount = user_history.get("avg_amount", 0)
     amount = transaction.get("amount", 0)
 
+    # ─── Factor 1: Large Amount ───
     if avg_amount > 0 and amount > avg_amount * 3:
         multiplier = round(amount / avg_amount, 1)
         contribution = min(WEIGHTS["large_amount"], WEIGHTS["large_amount"] * (multiplier / 5))
@@ -253,62 +253,50 @@ def _score_rule_based(
             "detail": f"₹{amount:,.0f} is {multiplier}x your average transaction of ₹{avg_amount:,.0f}",
         })
         total_score += contribution
-    elif avg_amount == 0 and amount > 10000:
+
+    # ─── Telemetry Vector Checks (Sensor Toggles) ───
+    telemetry = transaction.get("telemetry") or {}
+    has_telemetry = bool(telemetry)
+
+    active_call = telemetry.get("activeCall") or telemetry.get("call_state_active") or False
+    new_device_toggle = telemetry.get("newDevice") or (telemetry.get("device_fingerprint_match") is False) or False
+    first_payee_toggle = telemetry.get("firstTimePayee") or (telemetry.get("payee_in_contacts") is False) or False
+
+    # Factor: Active Call
+    if active_call:
+        contribution = 35.0
         factors.append({
-            "factor": "Large first transaction",
-            "contribution": 12,
-            "detail": f"₹{amount:,.0f} is a significant amount for a new account",
+            "factor": "Active call in progress (Coercion risk)",
+            "contribution": contribution,
+            "detail": "User is currently on an active phone call during payment initiation (Vishing indicator)",
         })
-        total_score += 12
-
-    # ─── Factor 2: New Payee ───
-    known_payees = set(user_history.get("known_payees", []))
-    payee_upi = transaction.get("payee_upi", "")
-
-    if payee_upi and payee_upi not in known_payees:
-        contribution = WEIGHTS["new_payee"]
-        if amount > 5000:
-            contribution = WEIGHTS["high_value_new_payee"]
-            factors.append({
-                "factor": "First-time payee (high value)",
-                "contribution": contribution,
-                "detail": f"First transaction to {payee_upi} with amount ₹{amount:,.0f}",
-            })
-        else:
-            factors.append({
-                "factor": "New payee",
-                "contribution": contribution,
-                "detail": f"You haven't transacted with {payee_upi} before",
-            })
         total_score += contribution
 
-    # ─── Factor 3: Device Change ───
-    current_device = transaction.get("device_fingerprint")
-    registered_device = transaction.get("user_registered_device") or user_history.get("registered_device")
-    known_devices = set(user_history.get("known_devices", []))
+    # Factor: New Device
+    if new_device_toggle or (not has_telemetry and transaction.get("device_fingerprint") and user_history.get("registered_device") and transaction.get("device_fingerprint") != user_history.get("registered_device")):
+        contribution = 25.0
+        factors.append({
+            "factor": "Unrecognized device fingerprint",
+            "contribution": contribution,
+            "detail": "Transaction initiated from an unrecognized device",
+        })
+        total_score += contribution
 
-    if current_device and registered_device and current_device != registered_device:
-        if current_device not in known_devices:
-            contribution = WEIGHTS["device_change"]
-            factors.append({
-                "factor": "Device change detected",
-                "contribution": contribution,
-                "detail": "Transaction from an unrecognized device",
-            })
-            total_score += contribution
-        else:
-            contribution = WEIGHTS["device_change"] * 0.4
-            factors.append({
-                "factor": "Different device",
-                "contribution": round(contribution, 1),
-                "detail": "Transaction from a previously used but non-primary device",
-            })
-            total_score += contribution
+    # Factor: First Time Payee
+    payee_upi = transaction.get("payee_upi", "")
+    known_payees = set(user_history.get("known_payees", []))
+    if first_payee_toggle or (not has_telemetry and payee_upi and payee_upi not in known_payees):
+        contribution = 25.0 if amount > 5000 else 15.0
+        factors.append({
+            "factor": "First-time payee",
+            "contribution": contribution,
+            "detail": f"First payment to {payee_upi}",
+        })
+        total_score += contribution
 
     # ─── Factor 4: Unusual Time ───
     current_hour = datetime.now(timezone.utc).hour
     ist_hour = (current_hour + 5.5) % 24
-
     if ist_hour >= 23 or ist_hour < 6:
         contribution = WEIGHTS["unusual_time"]
         factors.append({
@@ -320,66 +308,12 @@ def _score_rule_based(
 
     # ─── Factor 5: Rapid Succession ───
     recent_count = user_history.get("recent_txn_count_5min", 0)
-
     if recent_count >= 3:
         contribution = WEIGHTS["rapid_succession"]
         factors.append({
             "factor": "Multiple rapid transactions",
             "contribution": contribution,
             "detail": f"{recent_count} transactions in the last 5 minutes",
-        })
-        total_score += contribution
-    elif recent_count >= 2:
-        contribution = WEIGHTS["rapid_succession"] * 0.5
-        factors.append({
-            "factor": "Quick successive transactions",
-            "contribution": round(contribution, 1),
-            "detail": f"{recent_count} transactions in the last 5 minutes",
-        })
-        total_score += contribution
-
-    # ─── Telemetry Vector Checks (from On-Device Sensor Toggles) ───
-    telemetry = transaction.get("telemetry") or {}
-    active_call = telemetry.get("activeCall") or telemetry.get("call_state_active") or False
-    new_device_toggle = telemetry.get("newDevice") or (telemetry.get("device_fingerprint_match") is False) or False
-    first_payee_toggle = telemetry.get("firstTimePayee") or (telemetry.get("payee_in_contacts") is False) or False
-
-    if active_call:
-        contribution = 35.0
-        factors.append({
-            "factor": "Active call in progress (Coercion risk)",
-            "contribution": contribution,
-            "detail": "User is currently on an active phone call during payment initiation (Vishing indicator)",
-        })
-        total_score += contribution
-
-    if new_device_toggle and not any("device" in f["factor"].lower() for f in factors):
-        contribution = 25.0
-        factors.append({
-            "factor": "Unrecognized device fingerprint",
-            "contribution": contribution,
-            "detail": "Transaction initiated from an unrecognized device",
-        })
-        total_score += contribution
-
-    if first_payee_toggle and not any("payee" in f["factor"].lower() for f in factors):
-        contribution = 25.0 if amount > 5000 else 15.0
-        factors.append({
-            "factor": "First-time payee",
-            "contribution": contribution,
-            "detail": f"First payment to {payee_upi}",
-        })
-        total_score += contribution
-
-    # ─── Factor 6: New Account ───
-    account_age = user_history.get("account_age_days", 0)
-
-    if account_age < 7:
-        contribution = WEIGHTS["new_account"]
-        factors.append({
-            "factor": "New account",
-            "contribution": contribution,
-            "detail": f"Account created {int(account_age)} day(s) ago",
         })
         total_score += contribution
 
@@ -429,19 +363,21 @@ def _explain_prediction(
         })
 
     telemetry = transaction.get("telemetry") or {}
+    has_telemetry = bool(telemetry)
+
     if telemetry.get("activeCall") or telemetry.get("call_state_active"):
         matched_factors.append({
             "factor": "Active call in progress (Coercion risk)",
             "base_weight": 35.0,
             "detail": "Active call detected during payment (Vishing indicator)"
         })
-    if telemetry.get("newDevice") or (telemetry.get("device_fingerprint_match") is False):
+    if telemetry.get("newDevice") or (telemetry.get("device_fingerprint_match") is False) or (not has_telemetry and transaction.get("device_fingerprint") != user_history.get("registered_device")):
         matched_factors.append({
             "factor": "Unrecognized device fingerprint",
             "base_weight": 25.0,
             "detail": "Transaction from an unrecognized device"
         })
-    if telemetry.get("firstTimePayee") or (telemetry.get("payee_in_contacts") is False):
+    if telemetry.get("firstTimePayee") or (telemetry.get("payee_in_contacts") is False) or (not has_telemetry and transaction.get("payee_upi") not in user_history.get("known_payees", [])):
         matched_factors.append({
             "factor": "First-time payee",
             "base_weight": 20.0,
