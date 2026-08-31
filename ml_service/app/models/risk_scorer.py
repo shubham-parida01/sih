@@ -469,16 +469,18 @@ def _generate_recommendation(risk_level: str, factors: List[Dict]) -> str:
     recommendations = []
     factor_names = {f["factor"] for f in factors}
 
-    if "New payee" in factor_names or "First-time payee (high value)" in factor_names:
-        recommendations.append("Verify you know this payee personally")
-    if "Device change detected" in factor_names:
-        recommendations.append("Confirm you are using your own device")
+    if any("Call State Active" in f for f in factor_names):
+        recommendations.append("Disconnect active phone call and verify caller identity before sending funds (Vishing protection)")
+    if any("Unrecognized / New Device" in f for f in factor_names):
+        recommendations.append("Confirm you are using your own trusted device")
+    if any("Payee Not in Contacts" in f for f in factor_names):
+        recommendations.append("Verify recipient UPI ID carefully as they are not in your saved contacts")
     if "Unusually large amount" in factor_names:
         recommendations.append("Double-check the payment amount")
     if "Rapid succession payments" in factor_names or "Multiple rapid transactions" in factor_names:
         recommendations.append("Wait a few minutes before making another transaction")
     if "Unusual transaction time" in factor_names:
-        recommendations.append("Consider making this payment during banking hours")
+        recommendations.append("Consider making this payment during normal banking hours")
 
     if not recommendations:
         recommendations.append("Please review the transaction details carefully before proceeding")
