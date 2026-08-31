@@ -58,6 +58,7 @@ export const InterventionModal = ({
   riskScore = 75
 }) => {
   const displayFactors = factors && factors.length > 0 ? factors : defaultRiskFactors;
+  const formattedScore = typeof riskScore === 'number' ? Number(riskScore.toFixed(1)) : riskScore;
 
   return (
     <AnimatePresence>
@@ -69,7 +70,7 @@ export const InterventionModal = ({
           transition={{ type: 'spring', damping: 30, stiffness: 120 }}
           className="fixed inset-0 z-50 flex flex-col md:flex-row w-full h-dvh bg-(--color-off-white-canvas) dark:bg-(--color-obsidian) overflow-hidden transition-colors duration-300"
         >
-          {/* LEFT PANEL: Urgent Alert */}
+          {/* LEFT PANEL: Urgent Alert & Prominent High-Tech Risk Score Gauge */}
           <div className="w-full md:w-5/12 bg-(--color-electric-lime) dark:bg-(--color-iris-gleam) p-6 md:p-12 flex flex-col justify-center items-center relative overflow-hidden shrink-0 transition-colors duration-300">
             {/* Subtle pulse background effect */}
             <motion.div 
@@ -78,34 +79,66 @@ export const InterventionModal = ({
               className="absolute -right-20 -top-20 w-64 h-64 bg-(--color-off-black-ink) dark:bg-black rounded-full blur-3xl pointer-events-none"
             />
             
-            <div className="relative z-10 flex flex-col items-center text-center gap-6">
+            <div className="relative z-10 flex flex-col items-center text-center gap-6 w-full max-w-sm">
+              
+              {/* Prominent High-Tech Risk Score Gauge Box */}
               <motion.div 
-                initial={{ scale: 0.8, opacity: 0 }}
+                initial={{ scale: 0.85, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
-                transition={{ delay: 0.3, type: 'spring', stiffness: 150, damping: 20 }}
-                className="w-16 h-16 md:w-20 md:h-20 bg-(--color-off-black-ink) dark:bg-white rounded-3xl flex items-center justify-center mx-auto shadow-lg"
+                transition={{ delay: 0.2, type: 'spring', stiffness: 140 }}
+                className="relative flex flex-col items-center justify-center p-6 rounded-3xl bg-black/15 dark:bg-black/35 border border-black/10 dark:border-white/10 backdrop-blur-md w-full shadow-xl"
               >
-                <ShieldAlert className="w-8 h-8 md:w-10 md:h-10 text-(--color-electric-lime) dark:text-(--color-iris-gleam)" />
+                {/* Circular Progress Ring */}
+                <div className="relative w-28 h-28 flex items-center justify-center mb-3">
+                  <svg className="w-full h-full transform -rotate-90" viewBox="0 0 36 36">
+                    <path
+                      className="text-black/15 dark:text-white/15"
+                      strokeWidth="3.5"
+                      stroke="currentColor"
+                      fill="none"
+                      d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                    />
+                    <path
+                      className="text-(--color-off-black-ink) dark:text-white"
+                      strokeDasharray={`${Math.min(100, Math.max(0, Number(formattedScore)))}, 100`}
+                      strokeWidth="3.5"
+                      strokeLinecap="round"
+                      stroke="currentColor"
+                      fill="none"
+                      d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                    />
+                  </svg>
+                  <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
+                    <span className="text-3xl font-black tracking-tight text-(--color-off-black-ink) dark:text-white leading-none">
+                      {formattedScore}
+                    </span>
+                    <span className="text-[10px] font-extrabold uppercase tracking-widest text-(--color-off-black-ink)/75 dark:text-white/75 mt-1">
+                      / 100
+                    </span>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-(--color-off-black-ink) dark:bg-white text-(--color-electric-lime) dark:text-(--color-obsidian) text-xs font-black uppercase tracking-wider shadow-sm">
+                  <ShieldAlert className="w-3.5 h-3.5" />
+                  <span>{formattedScore >= 60 ? "CRITICAL RISK" : "MEDIUM RISK"}</span>
+                </div>
               </motion.div>
               
               <div className="flex flex-col items-center">
-                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-black/15 dark:bg-white/20 text-xs font-bold text-(--color-off-black-ink) dark:text-white uppercase tracking-widest mb-2">
-                  <Cpu className="w-3.5 h-3.5" />
-                  Risk Score: {riskScore}/100
-                </span>
                 <motion.h2 
-                  initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.4, duration: 0.6 }}
-                  className="text-4xl md:text-5xl font-bold text-(--color-off-black-ink) dark:text-white leading-tight tracking-(--tracking-heading)"
+                  initial={{ y: 15, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.3, duration: 0.5 }}
+                  className="text-4xl md:text-5xl font-extrabold text-(--color-off-black-ink) dark:text-white leading-tight tracking-tight"
                 >
                   Payment<br/>Paused
                 </motion.h2>
                 <motion.p 
-                  initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.5, duration: 0.6 }}
-                  className="mt-3 text-(length:--text-body) text-(--color-off-black-ink) dark:text-white opacity-90 max-w-sm mx-auto font-medium"
+                  initial={{ y: 15, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.4, duration: 0.5 }}
+                  className="mt-3 text-sm md:text-base text-(--color-off-black-ink) dark:text-white opacity-90 font-medium leading-relaxed"
                 >
                   RakshaPay's ML model intercepted this transaction due to coercion signals.
                 </motion.p>
               </div>
+
             </div>
           </div>
 
@@ -181,7 +214,7 @@ export const InterventionModal = ({
                         </div>
 
                         {factor.contribution && (
-                          <span className="shrink-0 text-xs font-bold px-2 py-1 rounded-full bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 border border-red-200 dark:border-red-800">
+                          <span className="shrink-0 text-xs font-bold px-2.5 py-1 rounded-full bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 border border-red-200 dark:border-red-800">
                             +{factor.contribution}%
                           </span>
                         )}

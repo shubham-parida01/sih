@@ -16,17 +16,6 @@ export const TelemetryTerminal = ({
   liveJSON,
 }) => {
   const [showTable, setShowTable] = useState(true);
-  const currentRiskScore = (telemetry?.activeCall ? 35 : 0) + (telemetry?.newDevice ? 25 : 0) + (telemetry?.firstTimePayee ? 20 : 0);
-  const getRiskBadge = () => {
-    if (currentRiskScore === 0) {
-      return { text: "RISK SCORE: 0/100 • SAFE PASSING", cls: "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border-emerald-500/30" };
-    }
-    if (currentRiskScore < 60) {
-      return { text: `RISK SCORE: ${currentRiskScore}/100 • PAUSE REVIEW`, cls: "bg-amber-500/15 text-amber-600 dark:text-amber-400 border-amber-500/30" };
-    }
-    return { text: `RISK SCORE: ${currentRiskScore}/100 • CRITICAL BLOCKED`, cls: "bg-red-500/15 text-red-600 dark:text-red-400 border-red-500/30 animate-pulse" };
-  };
-  const badge = getRiskBadge();
 
   return (
     <>
@@ -66,14 +55,9 @@ export const TelemetryTerminal = ({
           <div className="flex items-center gap-3">
             <Cpu className="w-8 h-8 text-(--color-electric-lime) dark:text-(--color-iris-gleam)" />
             <div>
-              <div className="flex items-center gap-2">
-                <h2 className="text-2xl font-bold text-(--color-off-black-ink) dark:text-white tracking-tight">
-                  On-Device Extraction
-                </h2>
-                <span className={`px-3 py-1 rounded-full text-xs font-extrabold border ${badge.cls}`}>
-                  {badge.text}
-                </span>
-              </div>
+              <h2 className="text-2xl font-bold text-(--color-off-black-ink) dark:text-white tracking-tight">
+                On-Device Extraction
+              </h2>
               <p className="text-sm text-(--color-graphite) dark:text-gray-400 mt-0.5">
                 Real-time local hardware and environmental state.
               </p>
