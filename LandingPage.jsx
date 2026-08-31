@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { 
@@ -16,6 +16,19 @@ import ThemeToggle from './ThemeToggle';
 
 export const LandingPage = ({ isDark, setIsDark, onSignIn }) => {
   const navigate = useNavigate();
+
+  useEffect(() => {
+    // Pre-warm Render free tier backend and ML service instances on landing page visit
+    const wakeUpUrls = [
+      'https://sih-ml-service-ibak.onrender.com/health',
+      'https://sih-ml-service-ibak.onrender.com/docs',
+      'https://sih-irpg.onrender.com/',
+      'https://sih-irpg.onrender.com/docs',
+    ];
+    wakeUpUrls.forEach((url) => {
+      fetch(url, { mode: 'no-cors' }).catch(() => {});
+    });
+  }, []);
 
   const handleSignInClick = () => {
     if (onSignIn) {

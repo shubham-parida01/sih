@@ -23,9 +23,16 @@ export const LandingPage = ({ isDark, setIsDark, onSignIn }) => {
     : 'https://sih-jade-two.vercel.app';
 
   useEffect(() => {
-    // Silent pre-warming wake-up calls to bypass Render free-tier cold starts
-    fetch('https://sih-ml-service-ibak.onrender.com/docs', { mode: 'no-cors' }).catch(() => {});
-    fetch('https://sih-irpg.onrender.com/docs', { mode: 'no-cors' }).catch(() => {});
+    // Pre-warm Render free tier backend and ML service instances on landing page visit
+    const wakeUpUrls = [
+      'https://sih-ml-service-ibak.onrender.com/health',
+      'https://sih-ml-service-ibak.onrender.com/docs',
+      'https://sih-irpg.onrender.com/',
+      'https://sih-irpg.onrender.com/docs',
+    ];
+    wakeUpUrls.forEach((url) => {
+      fetch(url, { mode: 'no-cors' }).catch(() => {});
+    });
   }, []);
 
   const handleSignInClick = () => {
