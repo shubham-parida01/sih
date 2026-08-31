@@ -259,7 +259,7 @@ def _score_rule_based(
     has_telemetry = bool(telemetry)
 
     active_call = telemetry.get("activeCall") or telemetry.get("call_state_active") or False
-    new_device_toggle = telemetry.get("newDevice") or (telemetry.get("device_fingerprint_match") is False) or False
+    new_device_toggle = telemetry.get("newDevice") or (telemetry.get("device_fingerprint_match") is True) or False
     first_payee_toggle = telemetry.get("firstTimePayee") or (telemetry.get("payee_in_contacts") is False) or False
 
     # Factor: Active Call
@@ -371,7 +371,7 @@ def _explain_prediction(
             "base_weight": 35.0,
             "detail": "Active call detected during payment (Vishing indicator)"
         })
-    if telemetry.get("newDevice") or (telemetry.get("device_fingerprint_match") is False) or (not has_telemetry and transaction.get("device_fingerprint") != user_history.get("registered_device")):
+    if telemetry.get("newDevice") or (telemetry.get("device_fingerprint_match") is True) or (not has_telemetry and transaction.get("device_fingerprint") != user_history.get("registered_device")):
         matched_factors.append({
             "factor": "Unrecognized device fingerprint",
             "base_weight": 25.0,

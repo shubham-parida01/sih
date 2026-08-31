@@ -190,7 +190,7 @@ export const PaymentScreen = ({
     },
     situational_sensors: {
       call_state_active: telemetry.activeCall,
-      device_fingerprint_match: !telemetry.newDevice,
+      device_fingerprint_match: telemetry.newDevice,
       payee_in_contacts: !telemetry.firstTimePayee,
     }
   };
