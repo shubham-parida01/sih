@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Eye, EyeOff, ShieldCheck, Lock, Mail, User, Sparkles } from 'lucide-react';
+import { GoogleLogin } from '@react-oauth/google';
 import toast from 'react-hot-toast';
 import ThemeToggle from './ThemeToggle';
 import { auth, saveSession } from '../services/api';
@@ -24,6 +25,28 @@ export const AuthScreen = ({ onLogin, isDark: externalIsDark, setIsDark: externa
     } else {
       setInternalIsDark(nextVal);
     }
+  };
+
+  const handleGoogleSuccess = async (credentialResponse) => {
+    if (!credentialResponse?.credential) {
+      toast.error("Google authentication failed — no credential received");
+      return;
+    }
+    setLoading(true);
+    try {
+      const res = await auth.googleLogin(credentialResponse.credential);
+      saveSession(res.data);
+      toast.success(`Welcome, ${res.data.full_name || 'User'}!`);
+      if (onLogin) onLogin();
+    } catch (err) {
+      toast.error(err.detail || err.message || 'Google authentication failed');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleGoogleError = () => {
+    toast.error("Google Sign-In was cancelled or encountered an error");
   };
 
   const handleSubmit = async (e) => {
@@ -215,6 +238,31 @@ export const AuthScreen = ({ onLogin, isDark: externalIsDark, setIsDark: externa
                 </button>
               </form>
 
+              {/* OAuth Divider */}
+              <div className="relative my-6">
+                <div className="absolute inset-0 flex items-center">
+                  <div className="w-full border-t border-gray-200 dark:border-gray-800" />
+                </div>
+                <div className="relative flex justify-center text-[10px] uppercase font-extrabold tracking-widest text-gray-400 dark:text-gray-500">
+                  <span className="bg-white dark:bg-[#111317] px-3">
+                    Or continue with
+                  </span>
+                </div>
+              </div>
+
+              {/* Google OAuth Button */}
+              <div className="w-full flex justify-center py-1">
+                <GoogleLogin
+                  onSuccess={handleGoogleSuccess}
+                  onError={handleGoogleError}
+                  theme={isDark ? "filled_black" : "outline"}
+                  shape="circle"
+                  size="large"
+                  text={isLogin ? "signin_with" : "signup_with"}
+                  width="100%"
+                />
+              </div>
+
               {/* Footer Toggle */}
               <div className="text-center mt-6 text-xs text-gray-500 dark:text-gray-400 font-medium">
                 <span>
@@ -237,3 +285,5 @@ export const AuthScreen = ({ onLogin, isDark: externalIsDark, setIsDark: externa
 };
 
 export default AuthScreen;
+
+
