@@ -7,11 +7,12 @@ from fastapi import APIRouter, Depends
 from app.schemas.auth import (
     RegisterRequest,
     LoginRequest,
+    GoogleLoginRequest,
     TokenResponse,
     RefreshTokenRequest,
     UserResponse,
 )
-from app.services.auth_service import register_user, login_user, refresh_access_token
+from app.services.auth_service import register_user, login_user, google_login_user, refresh_access_token
 from app.middleware.auth_middleware import get_current_user
 
 router = APIRouter(prefix="/api/auth", tags=["Authentication"])
@@ -54,6 +55,21 @@ async def login(request: LoginRequest):
     return {
         "success": True,
         "message": "Login successful",
+        "data": tokens,
+    }
+
+
+@router.post("/google", response_model=dict)
+async def google_auth(request: GoogleLoginRequest):
+    """
+    Authenticate or register user via Google OAuth 2.0.
+    Accepts Google ID Token (credential) and returns standard RakshaPay JWT access and refresh tokens.
+    """
+    tokens = await google_login_user(request.credential)
+
+    return {
+        "success": True,
+        "message": "Google authentication successful",
         "data": tokens,
     }
 

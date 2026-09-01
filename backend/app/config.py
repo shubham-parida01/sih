@@ -5,11 +5,17 @@ Loads all settings from environment variables with Pydantic BaseSettings.
 
 from pydantic_settings import BaseSettings
 from pydantic import Field
-from typing import List
+from typing import List, Optional
 
 
 class Settings(BaseSettings):
     """Application settings loaded from .env file."""
+
+    # Google OAuth
+    GOOGLE_CLIENT_ID: Optional[str] = Field(
+        default="1053144719031-j7ou32jso9339918sdi0gr4pfk04orvr.apps.googleusercontent.com",
+        description="Google OAuth 2.0 Web Client ID"
+    )
 
     # MongoDB Atlas
     MONGODB_URI: str = Field(

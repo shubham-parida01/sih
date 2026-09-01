@@ -21,6 +21,11 @@ class LoginRequest(BaseModel):
     password: str
 
 
+class GoogleLoginRequest(BaseModel):
+    """Schema for Google OAuth 2.0 login / registration."""
+    credential: str = Field(..., description="Google ID Token JWT returned by Google Identity Services")
+
+
 class TokenResponse(BaseModel):
     """Schema for JWT token response."""
     access_token: str
