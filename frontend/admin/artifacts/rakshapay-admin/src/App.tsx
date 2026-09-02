@@ -127,7 +127,11 @@ const accountTrend = [
   { month: 'Dec', score: 41 }, { month: 'Jan', score: 44 }, { month: 'Feb', score: 39 }, { month: 'Mar', score: 47 }, { month: 'Apr', score: 50 }, { month: 'May', score: 52 },
 ];
 
-type FeedbackContextValue = { notify: (message: string) => void };
+type FeedbackContextValue = { 
+  notify: (message: string) => void;
+  openAlertsCount: number;
+  setOpenAlertsCount: (count: number) => void;
+};
 const FeedbackContext = createContext<FeedbackContextValue | null>(null);
 function useFeedback() {
   const context = useContext(FeedbackContext);
@@ -154,7 +158,7 @@ const navGroups = [
     { href: '/', label: 'Overview', icon: LayoutDashboard },
     { href: '/accounts', label: 'Accounts', icon: WalletCards },
     { href: '/transactions', label: 'Transactions', icon: ArrowLeftRightIcon },
-    { href: '/alerts', label: 'Alerts', icon: Bell, count: 7 },
+    { href: '/alerts', label: 'Alerts', icon: Bell },
     { href: '/analytics', label: 'Risk analytics', icon: BarChart3 },
   ] },
   { label: 'Administration', items: [
@@ -169,7 +173,7 @@ function ArrowLeftRightIcon(props: LucideProps) {
 
 function Sidebar({ mobileOpen, onClose }: { mobileOpen: boolean; onClose: () => void }) {
   const [location] = useLocation();
-  const { notify } = useFeedback();
+  const { notify, openAlertsCount } = useFeedback();
   const handleLogout = () => {
     localStorage.removeItem('rakshapay_token');
     localStorage.removeItem('rakshapay_role');
@@ -190,11 +194,12 @@ function Sidebar({ mobileOpen, onClose }: { mobileOpen: boolean; onClose: () => 
                 {group.items.map((item) => {
                   const active = item.href === '/' ? location === '/' : location.startsWith(item.href.split('/').slice(0, 2).join('/'));
                   const Icon = item.icon;
+                  const count = item.href === '/alerts' ? openAlertsCount : item.count;
                   return (
                     <Link key={`${group.label}-${item.label}`} href={item.href} onClick={onClose} className={`group flex h-10 items-center gap-3 rounded-lg px-3 text-[12px] font-semibold transition-colors ${active ? 'bg-primary text-primary-foreground' : 'text-sidebar-foreground/60 hover:bg-sidebar-accent hover:text-sidebar-foreground'}`}>
                       <Icon size={16} strokeWidth={active ? 2.5 : 1.8} />
                       <span className="flex-1">{item.label}</span>
-                      {item.count ? <span className={`mono flex h-5 min-w-5 items-center justify-center rounded-full px-1 text-[10px] ${active ? 'bg-black/15' : 'bg-primary text-primary-foreground'}`}>{item.count}</span> : null}
+                      {count ? <span className={`mono flex h-5 min-w-5 items-center justify-center rounded-full px-1 text-[10px] ${active ? 'bg-black/15' : 'bg-primary text-primary-foreground'}`}>{count}</span> : null}
                     </Link>
                   );
                 })}
@@ -685,14 +690,14 @@ function Alerts() {
   const [items, setItems] = useState<AlertItem[]>([]);
   const [filter, setFilter] = useState<'All' | AlertItem['status']>('All');
   const [search, setSearch] = useState('');
-  const { notify } = useFeedback();
+  const { notify, setOpenAlertsCount } = useFeedback();
 
   useEffect(() => {
     async function loadAlerts() {
       try {
         const res = await adminApi.alerts();
         if (res?.data?.alerts) {
-          setItems(res.data.alerts.map((a: any) => ({
+          const mapped: AlertItem[] = res.data.alerts.map((a: any) => ({
             id: a.id || a._id,
             title: a.alert_type || 'Risk Signal',
             detail: a.risk_explanation || 'Behavioral pattern flagged',
@@ -702,7 +707,9 @@ function Alerts() {
             time: new Date(a.created_at || Date.now()).toLocaleTimeString(),
             status: a.status === 'reviewed' ? 'Resolved' : 'Open',
             signal: a.alert_type || 'Behavioral'
-          })));
+          }));
+          setItems(mapped);
+          setOpenAlertsCount(mapped.filter((i) => i.status !== 'Resolved').length);
         }
       } catch (e) {
         console.warn("Using active alert queue");
@@ -711,19 +718,28 @@ function Alerts() {
     loadAlerts();
   }, []);
 
+  const openCount = items.filter(i => i.status === 'Open').length;
+  const investigatingCount = items.filter(i => i.status === 'Investigating').length;
+  const resolvedCount = items.filter(i => i.status === 'Resolved').length;
+  const unresolvedTotal = openCount + investigatingCount;
+
   const filtered = items.filter((item) => (filter === 'All' || item.status === filter) && `${item.title} ${item.account} ${item.id}`.toLowerCase().includes(search.toLowerCase()));
   const updateAlert = async (id: string, status: AlertItem['status']) => {
     try {
       const action = status === 'Resolved' ? 'approve' : 'reject';
       await adminApi.reviewAlert(id, action, `Reviewed by Admin: ${status}`);
     } catch (e) {}
-    setItems((current) => current.map((item) => item.id === id ? { ...item, status } : item));
+    setItems((current) => {
+      const updated = current.map((item) => item.id === id ? { ...item, status } : item);
+      setOpenAlertsCount(updated.filter(i => i.status !== 'Resolved').length);
+      return updated;
+    });
     notify(status === 'Resolved' ? 'Alert resolved and logged' : 'Alert moved to investigation');
   };
 
-  return <div className="space-y-6"><div className="flex flex-wrap items-end justify-between gap-4"><div><p className="text-[11px] font-semibold text-muted-foreground">Live queue · {items.filter(i=>i.status!=='Resolved').length} require attention</p><h2 className="mt-1 text-[26px] font-extrabold tracking-[-.055em]">Risk alerts</h2><p className="mt-1 text-[12px] text-muted-foreground">Triage signals before they become customer impact.</p></div><div className="flex items-center gap-2"><Badge tone="critical"><span className="mr-1 h-1.5 w-1.5 rounded-full bg-red-500" />{items.filter(i=>i.status!=='Resolved').length} open</Badge></div></div>
-    <div className="grid grid-cols-2 gap-3 lg:grid-cols-4"><MetricCard label="Open alerts" value={items.filter(i=>i.status!=='Resolved').length.toString()} delta="2 today" detail="awaiting review" icon={Bell} positive={false} /><MetricCard label="Investigating" value="1" delta="14 min" detail="average response time" icon={Clock3} /><MetricCard label="Resolved today" value={items.filter(i=>i.status==='Resolved').length.toString()} delta="22.4%" detail="vs yesterday" icon={CheckCircle2} /><MetricCard label="False positive rate" value="4.8%" delta="0.7%" detail="this month" icon={ShieldCheck} /></div>
-    <div className="card-surface overflow-hidden rounded-xl"><div className="flex flex-wrap items-center justify-between gap-3 border-b border-border p-4 sm:p-5"><div className="flex items-center gap-2"><button type="button" onClick={() => setFilter('All')} className={`rounded-md px-3 py-2 text-[11px] font-bold ${filter === 'All' ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:bg-muted'}`}>All <span className="mono ml-1 opacity-60">{items.length}</span></button>{(['Open','Investigating','Resolved'] as const).map((status) => <button type="button" onClick={() => setFilter(status)} key={status} className={`rounded-md px-3 py-2 text-[11px] font-bold ${filter === status ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:bg-muted'}`}>{status}</button>)}</div><label className="relative flex w-full sm:w-[245px]"><Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" /><input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search alerts…" className="h-9 w-full rounded-lg border border-border bg-background pl-9 pr-3 text-[11px] outline-none focus:border-primary" /></label></div><div className="divide-y divide-border">{filtered.map((alert) => <div key={alert.id} className="flex flex-wrap items-center gap-4 p-4 transition-colors hover:bg-muted/30 sm:p-5"><span className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${alert.severity === 'Critical' ? 'bg-red-500/14 text-red-600 dark:text-red-300' : alert.severity === 'High' ? 'bg-orange-500/14 text-orange-600 dark:text-orange-300' : 'bg-amber-400/15 text-amber-700 dark:text-amber-300'}`}><AlertTriangle size={18} /></span><div className="min-w-[220px] flex-1"><div className="flex flex-wrap items-center gap-2"><p className="text-[12px] font-extrabold">{alert.title}</p><Badge tone={alert.severity === 'Critical' ? 'critical' : alert.severity === 'High' ? 'high' : 'medium'}>{alert.severity}</Badge></div><p className="mt-1 text-[11px] text-muted-foreground">{alert.detail}</p><p className="mono mt-2 text-[10px] text-muted-foreground">{alert.id} · <span className="font-sans font-bold text-foreground">{alert.account}</span> · {alert.time}</p></div><div className="flex items-center gap-2 sm:ml-auto"><Badge tone={alert.status === 'Resolved' ? 'success' : alert.status === 'Investigating' ? 'review' : 'neutral'}>{alert.status}</Badge>{alert.status !== 'Resolved' ? <><button type="button" onClick={() => updateAlert(alert.id, alert.status === 'Open' ? 'Investigating' : 'Resolved')} className="flex h-8 items-center gap-1.5 rounded-md border border-border px-2.5 text-[10px] font-bold hover:bg-muted">{alert.status === 'Open' ? <><Activity size={12} />Investigate</> : <><Check size={12} />Resolve</>}</button><button type="button" onClick={() => updateAlert(alert.id, 'Resolved')} className="hidden h-8 w-8 items-center justify-center rounded-md border border-border hover:bg-primary/15 sm:flex"><Check size={13} /></button></> : <button type="button" onClick={() => updateAlert(alert.id, 'Open')} className="h-8 rounded-md border border-border px-2.5 text-[10px] font-bold hover:bg-muted">Reopen</button>}</div></div>)}{filtered.length === 0 ? <div className="p-12 text-center"><CheckCircle2 size={25} className="mx-auto text-primary" /><p className="mt-3 text-sm font-bold">Queue is clear</p><p className="mt-1 text-xs text-muted-foreground">No alerts match your current filters.</p></div> : null}</div></div>
+  return <div className="space-y-6"><div className="flex flex-wrap items-end justify-between gap-4"><div><p className="text-[11px] font-semibold text-muted-foreground">Live queue · {unresolvedTotal} require attention</p><h2 className="mt-1 text-[26px] font-extrabold tracking-[-.055em]">Risk alerts</h2><p className="mt-1 text-[12px] text-muted-foreground">Triage signals before they become customer impact.</p></div><div className="flex items-center gap-2"><Badge tone="critical"><span className="mr-1 h-1.5 w-1.5 rounded-full bg-red-500" />{openCount} open</Badge></div></div>
+    <div className="grid grid-cols-2 gap-3 lg:grid-cols-4"><MetricCard label="Open alerts" value={openCount.toString()} delta={`${openCount} active`} detail="awaiting review" icon={Bell} positive={false} /><MetricCard label="Investigating" value={investigatingCount.toString()} delta={`${investigatingCount} active`} detail="in progress triage" icon={Clock3} /><MetricCard label="Resolved today" value={resolvedCount.toString()} delta={`${resolvedCount} closed`} detail="actioned alerts" icon={CheckCircle2} /><MetricCard label="False positive rate" value="4.8%" delta="0.7%" detail="this month" icon={ShieldCheck} /></div>
+    <div className="card-surface overflow-hidden rounded-xl"><div className="flex flex-wrap items-center justify-between gap-3 border-b border-border p-4 sm:p-5"><div className="flex items-center gap-2"><button type="button" onClick={() => setFilter('All')} className={`rounded-md px-3 py-2 text-[11px] font-bold ${filter === 'All' ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:bg-muted'}`}>All <span className="mono ml-1 opacity-60">{items.length}</span></button><button type="button" onClick={() => setFilter('Open')} className={`rounded-md px-3 py-2 text-[11px] font-bold ${filter === 'Open' ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:bg-muted'}`}>Open <span className="mono ml-1 opacity-60">{openCount}</span></button><button type="button" onClick={() => setFilter('Investigating')} className={`rounded-md px-3 py-2 text-[11px] font-bold ${filter === 'Investigating' ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:bg-muted'}`}>Investigating <span className="mono ml-1 opacity-60">{investigatingCount}</span></button><button type="button" onClick={() => setFilter('Resolved')} className={`rounded-md px-3 py-2 text-[11px] font-bold ${filter === 'Resolved' ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:bg-muted'}`}>Resolved <span className="mono ml-1 opacity-60">{resolvedCount}</span></button></div><label className="relative flex w-full sm:w-[245px]"><Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" /><input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search alerts…" className="h-9 w-full rounded-lg border border-border bg-background pl-9 pr-3 text-[11px] outline-none focus:border-primary" /></label></div><div className="divide-y divide-border">{filtered.map((alert) => <div key={alert.id} className="flex flex-wrap items-center gap-4 p-4 transition-colors hover:bg-muted/30 sm:p-5"><span className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${alert.severity === 'Critical' ? 'bg-red-500/14 text-red-600 dark:text-red-300' : alert.severity === 'High' ? 'bg-orange-500/14 text-orange-600 dark:text-orange-300' : 'bg-amber-400/15 text-amber-700 dark:text-amber-300'}`}><AlertTriangle size={18} /></span><div className="min-w-[220px] flex-1"><div className="flex flex-wrap items-center gap-2"><p className="text-[12px] font-extrabold">{alert.title}</p><Badge tone={alert.severity === 'Critical' ? 'critical' : alert.severity === 'High' ? 'high' : 'medium'}>{alert.severity}</Badge></div><p className="mt-1 text-[11px] text-muted-foreground">{alert.detail}</p><p className="mono mt-2 text-[10px] text-muted-foreground">{alert.id} · <span className="font-sans font-bold text-foreground">{alert.account}</span> · {alert.time}</p></div><div className="flex items-center gap-2 sm:ml-auto"><Badge tone={alert.status === 'Resolved' ? 'success' : alert.status === 'Investigating' ? 'review' : 'neutral'}>{alert.status}</Badge>{alert.status !== 'Resolved' ? <><button type="button" onClick={() => updateAlert(alert.id, alert.status === 'Open' ? 'Investigating' : 'Resolved')} className="flex h-8 items-center gap-1.5 rounded-md border border-border px-2.5 text-[10px] font-bold hover:bg-muted">{alert.status === 'Open' ? <><Activity size={12} />Investigate</> : <><Check size={12} />Resolve</>}</button><button type="button" onClick={() => updateAlert(alert.id, 'Resolved')} className="hidden h-8 w-8 items-center justify-center rounded-md border border-border hover:bg-primary/15 sm:flex"><Check size={13} /></button></> : <button type="button" onClick={() => updateAlert(alert.id, 'Open')} className="h-8 rounded-md border border-border px-2.5 text-[10px] font-bold hover:bg-muted">Reopen</button>}</div></div>)}{filtered.length === 0 ? <div className="p-12 text-center"><CheckCircle2 size={25} className="mx-auto text-primary" /><p className="mt-3 text-sm font-bold">Queue is clear</p><p className="mt-1 text-xs text-muted-foreground">No alerts match your current filters.</p></div> : null}</div></div>
   </div>;
 }
 
@@ -887,6 +903,7 @@ function AppRouter({ theme, onToggle }: { theme: Theme; onToggle: () => void }) 
 function App() {
   const [theme, setTheme] = useState<Theme>(() => (localStorage.getItem('rakshapay-theme') as Theme) || 'light');
   const [toast, setToast] = useState('');
+  const [openAlertsCount, setOpenAlertsCount] = useState(0);
   const [isAuthenticated, setIsAuthenticated] = useState(() => {
     return !!localStorage.getItem('rakshapay_token');
   });
@@ -894,16 +911,37 @@ function App() {
   useEffect(() => { document.documentElement.classList.toggle('dark', theme === 'dark'); localStorage.setItem('rakshapay-theme', theme); }, [theme]);
   useEffect(() => { if (!toast) return; const timer = window.setTimeout(() => setToast(''), 2800); return () => window.clearTimeout(timer); }, [toast]);
 
+  useEffect(() => {
+    if (!isAuthenticated) return;
+    async function fetchInitialAlerts() {
+      try {
+        const res = await adminApi.alerts();
+        if (res?.data?.alerts) {
+          const open = res.data.alerts.filter((a: any) => a.status !== 'reviewed' && a.status !== 'Resolved').length;
+          setOpenAlertsCount(open);
+        }
+      } catch (e) {}
+    }
+    fetchInitialAlerts();
+  }, [isAuthenticated]);
+
   if (!isAuthenticated) {
     return (
-      <FeedbackContext.Provider value={{ notify: setToast }}>
+      <FeedbackContext.Provider value={{ notify: setToast, openAlertsCount, setOpenAlertsCount }}>
         <AdminLoginScreen onLoginSuccess={() => setIsAuthenticated(true)} theme={theme} />
         {toast ? <Toast message={toast} onDismiss={() => setToast('')} /> : null}
       </FeedbackContext.Provider>
     );
   }
 
-  return <FeedbackContext.Provider value={{ notify: setToast }}><Router base={(import.meta.env.BASE_URL || '/').replace(/\/$/, '')}><AppRouter theme={theme} onToggle={() => setTheme((current) => current === 'dark' ? 'light' : 'dark')} /></Router>{toast ? <Toast message={toast} onDismiss={() => setToast('')} /> : null}</FeedbackContext.Provider>;
+  return (
+    <FeedbackContext.Provider value={{ notify: setToast, openAlertsCount, setOpenAlertsCount }}>
+      <Router base={(import.meta.env.BASE_URL || '/').replace(/\/$/, '')}>
+        <AppRouter theme={theme} onToggle={() => setTheme((current) => current === 'dark' ? 'light' : 'dark')} />
+      </Router>
+      {toast ? <Toast message={toast} onDismiss={() => setToast('')} /> : null}
+    </FeedbackContext.Provider>
+  );
 }
 
 export default App;
