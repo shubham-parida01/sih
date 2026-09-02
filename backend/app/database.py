@@ -53,13 +53,28 @@ async def connect_to_mongodb():
     # Create indexes for data isolation and performance
     try:
         await _create_indexes()
+        await _sanitize_negative_balances()
     except Exception as e:
         print(f"[*] Rebuilding index schema due to conflict: {e}")
         try:
             await db.users.drop_indexes()
             await _create_indexes()
+            await _sanitize_negative_balances()
         except Exception as err:
             print(f"[WARNING] Could not drop/recreate indexes: {err}")
+
+
+async def _sanitize_negative_balances():
+    """Ensure no user account in MongoDB Atlas has negative balance."""
+    try:
+        result = await db.users.update_many(
+            {"balance": {"$lt": 0}},
+            {"$set": {"balance": 0.0}}
+        )
+        if result.modified_count > 0:
+            print(f"[OK] Sanitized {result.modified_count} user accounts with negative balances to 0.0")
+    except Exception as err:
+        print(f"[WARNING] Negative balance sanitization check failed: {err}")
 
 
 async def close_mongodb_connection():

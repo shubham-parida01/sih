@@ -139,11 +139,18 @@ async def initiate_transaction(
     if risk_score < RISK_THRESHOLD_LOW:
         # SAFE → Auto-approve
         new_status = TransactionStatus.COMPLETED.value
-        # Deduct balance
+        # Deduct balance safely from sender
+        new_sender_bal = max(0.0, float(user.get("balance", 0.0)) - float(amount))
         await db.users.update_one(
             {"_id": ObjectId(user_id)},
-            {"$inc": {"balance": -amount}, "$set": {"updated_at": now}}
+            {"$set": {"balance": new_sender_bal, "updated_at": now}}
         )
+        # Credit balance to recipient (payee) if they exist in system
+        if payee_upi:
+            await db.users.update_one(
+                {"upi_id": payee_upi},
+                {"$inc": {"balance": float(amount)}, "$set": {"updated_at": now}}
+            )
         completed_at = now
 
     else:
@@ -262,15 +269,23 @@ async def confirm_transaction(user_id: str, txn_id: str) -> dict:
             f"Transaction cannot be confirmed. Current status: {txn['status']}"
         )
 
-    # Deduct balance
+    # Deduct balance safely from sender
     user = await db.users.find_one({"_id": ObjectId(user_id)})
-    if user.get("balance", 0) < txn["amount"]:
+    if not user or user.get("balance", 0.0) < txn["amount"]:
         raise BadRequestException("Insufficient balance")
 
+    new_sender_bal = max(0.0, float(user.get("balance", 0.0)) - float(txn["amount"]))
     await db.users.update_one(
         {"_id": ObjectId(user_id)},
-        {"$inc": {"balance": -txn["amount"]}, "$set": {"updated_at": now}}
+        {"$set": {"balance": new_sender_bal, "updated_at": now}}
     )
+
+    # Credit balance to recipient (payee) if they exist in system
+    if txn.get("payee_upi"):
+        await db.users.update_one(
+            {"upi_id": txn["payee_upi"]},
+            {"$inc": {"balance": float(txn["amount"])}, "$set": {"updated_at": now}}
+        )
 
     # Update transaction status to completed
     await db.transactions.update_one(

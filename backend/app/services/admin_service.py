@@ -227,16 +227,20 @@ async def get_all_accounts(
         elif avg_risk >= 30:
             risk_level = "medium"
 
+        created_dt = user.get("created_at") or user["_id"].generation_time
+        updated_dt = user.get("updated_at") or created_dt
+
         accounts.append({
             "id": user_id,
             "full_name": user["full_name"],
             "email": user["email"],
             "upi_id": user.get("upi_id"),
-            "balance": user.get("balance", 0),
+            "balance": max(0.0, float(user.get("balance", 0.0))),
             "total_transactions": stats["total"] if stats else 0,
             "avg_risk_score": round(avg_risk, 2),
             "risk_level": risk_level,
-            "last_active": user.get("updated_at", user["created_at"]).isoformat(),
+            "created_at": created_dt.isoformat(),
+            "last_active": updated_dt.isoformat(),
         })
 
     return {
@@ -289,16 +293,20 @@ async def get_account_detail(user_id: str) -> dict:
     elif avg_risk >= 30:
         risk_level = "medium"
 
+    created_dt = user.get("created_at") or user["_id"].generation_time
+    updated_dt = user.get("updated_at") or created_dt
+
     account_summary = {
         "id": uid,
         "full_name": user["full_name"],
         "email": user["email"],
         "upi_id": user.get("upi_id"),
-        "balance": user.get("balance", 0),
+        "balance": max(0.0, float(user.get("balance", 0.0))),
         "total_transactions": stats["total"] if stats else 0,
         "avg_risk_score": round(avg_risk, 2),
         "risk_level": risk_level,
-        "last_active": user.get("updated_at", user["created_at"]).isoformat(),
+        "created_at": created_dt.isoformat(),
+        "last_active": updated_dt.isoformat(),
     }
 
     # Account trend (monthly risk score area chart)
@@ -643,13 +651,21 @@ async def review_alert(
 
     if txn_status == TransactionStatus.COMPLETED.value:
         txn_update["completed_at"] = now
-        # Deduct balance if approving
+        # Deduct balance safely from sender & credit payee recipient
         txn = await db.transactions.find_one({"_id": ObjectId(alert["transaction_id"])})
         if txn:
-            await db.users.update_one(
-                {"_id": ObjectId(txn["user_id"])},
-                {"$inc": {"balance": -txn["amount"]}, "$set": {"updated_at": now}}
-            )
+            sender = await db.users.find_one({"_id": ObjectId(txn["user_id"])})
+            if sender:
+                new_sender_bal = max(0.0, float(sender.get("balance", 0.0)) - float(txn["amount"]))
+                await db.users.update_one(
+                    {"_id": sender["_id"]},
+                    {"$set": {"balance": new_sender_bal, "updated_at": now}}
+                )
+            if txn.get("payee_upi"):
+                await db.users.update_one(
+                    {"upi_id": txn["payee_upi"]},
+                    {"$inc": {"balance": float(txn["amount"])}, "$set": {"updated_at": now}}
+                )
 
     await db.transactions.update_one(
         {"_id": ObjectId(alert["transaction_id"])},

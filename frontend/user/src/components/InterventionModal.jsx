@@ -110,13 +110,15 @@ export const InterventionModal = ({
                   initial={{ y: 15, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.3, duration: 0.5 }}
                   className="text-4xl md:text-5xl font-black text-black dark:text-white leading-tight tracking-tight"
                 >
-                  Payment<br/>Paused
+                  Payment<br/>{formattedScore >= 80 ? "Blocked" : "Paused"}
                 </motion.h2>
                 <motion.p 
                   initial={{ y: 15, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.4, duration: 0.5 }}
                   className="mt-3 text-sm md:text-base text-black/90 dark:text-white/90 font-semibold leading-relaxed"
                 >
-                  RakshaPay's ML model intercepted this transaction due to coercion signals.
+                  {formattedScore >= 80
+                    ? "RakshaPay's ML engine blocked this transaction to prevent severe coercion or scam loss."
+                    : "RakshaPay's ML model intercepted this transaction due to coercion signals."}
                 </motion.p>
               </div>
 
@@ -176,7 +178,6 @@ export const InterventionModal = ({
                   >
                     {displayFactors.map((factor, idx) => {
                       let factorTitle = factor.factor || factor.title || "Risk Indicator";
-                      // Clean up phrasing: replace "fingerprint" wording if present
                       if (factorTitle.toLowerCase().includes("fingerprint")) {
                         factorTitle = "New / Unrecognized Device";
                       }
@@ -230,13 +231,19 @@ export const InterventionModal = ({
                 >
                   Cancel Payment (Recommended)
                 </button>
-                <button
-                  type="button"
-                  onClick={onProceed}
-                  className="w-full py-3.5 px-6 rounded-2xl bg-transparent border border-gray-300 dark:border-gray-700 text-gray-600 dark:text-gray-400 hover:border-gray-900 dark:hover:border-white hover:text-gray-900 dark:hover:text-white font-extrabold text-xs transition-colors active:scale-[0.99] cursor-pointer"
-                >
-                  I understand the risks, send anyway
-                </button>
+                {formattedScore >= 80 ? (
+                  <div className="w-full py-3.5 px-6 rounded-2xl bg-red-500/10 border border-red-500/30 text-red-600 dark:text-red-400 font-extrabold text-xs text-center">
+                    ⛔ Override Disabled: Transaction blocked due to critical risk
+                  </div>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={onProceed}
+                    className="w-full py-3.5 px-6 rounded-2xl bg-transparent border border-gray-300 dark:border-gray-700 text-gray-600 dark:text-gray-400 hover:border-gray-900 dark:hover:border-white hover:text-gray-900 dark:hover:text-white font-extrabold text-xs transition-colors active:scale-[0.99] cursor-pointer"
+                  >
+                    I understand the risks, send anyway
+                  </button>
+                )}
               </div>
             </motion.div>
           </div>

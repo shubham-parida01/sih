@@ -372,6 +372,31 @@ function CreateUserModal({ isOpen, onClose, onCreated }: { isOpen: boolean; onCl
     </div>
   );
 }
+const formatAccountDate = (createdAtStr?: string) => {
+  if (!createdAtStr) return '8/15/2024';
+  const date = new Date(createdAtStr);
+  if (isNaN(date.getTime())) return '8/15/2024';
+  return date.toLocaleDateString('en-US', { year: 'numeric', month: 'numeric', day: 'numeric' });
+};
+
+const formatAccountBalance = (bal?: any) => {
+  if (bal === undefined || bal === null) return '₹50,000';
+  const num = typeof bal === 'number' ? bal : parseFloat(String(bal).replace(/[^0-9.-]/g, ''));
+  const safeNum = isNaN(num) ? 50000 : Math.max(0, num);
+  return `₹${safeNum.toLocaleString()}`;
+};
+
+const formatEventTime = (timeStr?: string) => {
+  if (!timeStr) return new Date().toLocaleTimeString();
+  const date = new Date(timeStr);
+  return !isNaN(date.getTime()) ? date.toLocaleTimeString() : new Date().toLocaleTimeString();
+};
+
+const formatEventDateTime = (timeStr?: string) => {
+  if (!timeStr) return new Date().toLocaleString();
+  const date = new Date(timeStr);
+  return !isNaN(date.getTime()) ? date.toLocaleString() : new Date().toLocaleString();
+};
 
 function Dashboard() {
   const [search, setSearch] = useState('');
@@ -396,10 +421,10 @@ function Dashboard() {
           score: Math.round(a.avg_risk_score || 18),
           risk: a.risk_level === 'high' ? 'High' : a.risk_level === 'medium' ? 'Medium' : 'Low',
           transactions: a.total_transactions || 0,
-          value: `₹${(a.balance || 50000).toLocaleString()}`,
-          balance: `₹${(a.balance || 50000).toLocaleString()}`,
+          value: formatAccountBalance(a.balance),
+          balance: formatAccountBalance(a.balance),
           branch: 'Connaught Place Branch',
-          opened: new Date(a.created_at || Date.now()).toLocaleDateString(),
+          opened: formatAccountDate(a.created_at || a.created || a.opened),
           phone: a.phone || '+91 98765 00000',
           email: a.email || 'user@sih2026.com'
         })));
@@ -551,10 +576,10 @@ function AccountsList() {
           score: Math.round(a.avg_risk_score || 18),
           risk: a.risk_level === 'high' ? 'High' : a.risk_level === 'medium' ? 'Medium' : 'Low',
           transactions: a.total_transactions || 0,
-          value: `₹${(a.balance || 50000).toLocaleString()}`,
-          balance: `₹${(a.balance || 50000).toLocaleString()}`,
+          value: formatAccountBalance(a.balance),
+          balance: formatAccountBalance(a.balance),
           branch: 'Connaught Place Branch',
-          opened: new Date(a.created_at || Date.now()).toLocaleDateString(),
+          opened: formatAccountDate(a.created_at || a.created || a.opened),
           phone: a.phone || '+91 98765 00000',
           email: a.email || 'user@sih2026.com'
         })));
@@ -643,9 +668,9 @@ function AccountDetail() {
             kyc: 'Verified',
             score: Math.round(a.avg_risk_score || 18),
             risk: a.risk_level === 'high' ? 'High' : 'Low',
-            balance: `₹${(a.balance || 50000).toLocaleString()}`,
+            balance: formatAccountBalance(a.balance),
             branch: 'Main Branch',
-            opened: new Date(a.created_at || Date.now()).toLocaleDateString(),
+            opened: formatAccountDate(a.created_at || a.created || a.opened),
             phone: a.phone || '+91 98765 00000',
             email: a.email || 'user@sih2026.com'
           });
@@ -699,7 +724,7 @@ function Alerts() {
             account: a.user_name || a.user_email || 'Monitored User',
             accountId: a.user_id || 'user-1',
             severity: a.risk_score > 0.8 ? 'Critical' : a.risk_score > 0.5 ? 'High' : 'Medium',
-            time: new Date(a.created_at || Date.now()).toLocaleTimeString(),
+            time: formatEventTime(a.created_at),
             status: a.status === 'reviewed' ? 'Resolved' : 'Open',
             signal: a.alert_type || 'Behavioral'
           })));
@@ -744,11 +769,11 @@ function Transactions() {
             customer: t.user_name || 'Customer',
             type: 'Debit',
             counterparty: t.payee_upi || 'payee@upi',
-            amount: `₹${(t.amount || 0).toLocaleString()}`,
+            amount: formatAccountBalance(t.amount),
             rawAmount: t.amount || 0,
             status: t.status === 'blocked' ? 'Blocked' : t.status === 'paused' ? 'Review' : 'Cleared',
             risk: t.risk_level === 'critical' ? 'High' : 'Medium',
-            time: new Date(t.created_at || Date.now()).toLocaleString(),
+            time: formatEventDateTime(t.created_at),
             channel: 'UPI'
           })));
         }
