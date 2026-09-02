@@ -68,6 +68,7 @@ function AppFlow() {
         await transaction.confirm(modalData.txnId);
       }
       setIsModalOpen(false);
+      window.dispatchEvent(new Event('rakshapay_balance_update'));
       toast.success('Transaction confirmed and sent successfully.', {
         style: {
           background: 'var(--color-electric-lime)',

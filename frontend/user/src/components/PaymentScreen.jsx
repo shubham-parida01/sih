@@ -36,32 +36,36 @@ export const PaymentScreen = ({
     firstTimePayee: false,
   });
 
-  // Fetch current user details on mount
-  useEffect(() => {
-    async function loadProfile() {
-      try {
-        const res = await auth.me();
-        if (res && res.data) {
-          setUserProfile(res.data);
-        }
-      } catch (err) {
-        console.warn("Could not fetch active profile:", err);
-        if (err.status === 401 || err.status === 403) {
-          clearSession();
-          if (onLogout) onLogout();
-        } else {
-          const session = getSession();
-          if (session.name) {
-            setUserProfile({ 
-              full_name: session.name, 
-              upi_id: `${session.name.toLowerCase().replace(/\s+/g, '')}@upi`, 
-              balance: 50000.0 
-            });
-          }
+  // Fetch current user details
+  const loadProfile = async () => {
+    try {
+      const res = await auth.me();
+      if (res && res.data) {
+        setUserProfile(res.data);
+      }
+    } catch (err) {
+      console.warn("Could not fetch active profile:", err);
+      if (err.status === 401 || err.status === 403) {
+        clearSession();
+        if (onLogout) onLogout();
+      } else {
+        const session = getSession();
+        if (session.name) {
+          setUserProfile({ 
+            full_name: session.name, 
+            upi_id: `${session.name.toLowerCase().replace(/\s+/g, '')}@upi`, 
+            balance: 50000.0 
+          });
         }
       }
     }
+  };
+
+  useEffect(() => {
     loadProfile();
+    const handleUpdate = () => loadProfile();
+    window.addEventListener('rakshapay_balance_update', handleUpdate);
+    return () => window.removeEventListener('rakshapay_balance_update', handleUpdate);
   }, []);
 
   const handleChange = (e) => {
@@ -151,7 +155,7 @@ export const PaymentScreen = ({
       if (res.data.status === "paused" || res.data.status === "blocked") {
         if (onTriggerIntervention) {
           onTriggerIntervention({
-            txnId: res.data.transaction_id,
+            txnId: res.data.id || res.data.transaction_id,
             riskScore: res.data.risk_score,
             explanation: res.data.risk_explanation,
             recommendation: res.data.recommendation,
@@ -166,8 +170,7 @@ export const PaymentScreen = ({
           onPaymentSuccess({ amount, upiId });
         }
         // Refresh profile to show updated balance
-        const updated = await auth.me();
-        setUserProfile(updated.data);
+        await loadProfile();
       }
     } catch (err) {
       setIsExtracting(false);
@@ -213,7 +216,7 @@ export const PaymentScreen = ({
               </span>
             </div>
             <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 mt-0.5">
-              {userProfile?.upi_id || "user@upi"} • <span className="text-gray-900 dark:text-white font-extrabold">₹{userProfile?.balance ? userProfile.balance.toLocaleString() : "50,000"}</span>
+              {userProfile?.upi_id || "user@upi"} • <span className="text-gray-900 dark:text-white font-extrabold">₹{userProfile?.balance != null ? Number(userProfile.balance).toLocaleString() : "0"}</span>
             </p>
           </div>
         </div>
